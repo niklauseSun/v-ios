@@ -1,0 +1,6 @@
+${PODS_ROOT}/Target Support Files/Pods-VApp-ios/Pods-VApp-ios-frameworks.sh
+${BUILT_PRODUCTS_DIR}/IQKeyboardManager/IQKeyboardManager.framework
+${BUILT_PRODUCTS_DIR}/QMUIKit/QMUIKit.framework
+${BUILT_PRODUCTS_DIR}/SGQRCode/SGQRCode.framework
+${BUILT_PRODUCTS_DIR}/Shimmer/Shimmer.framework
+${BUILT_PRODUCTS_DIR}/WSProgressHUD/WSProgressHUD.framework

@@ -3,32 +3,116 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		59B8A8E37F89D2E8DCDB2ACE /* Pods_VApp_ios.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1820995A65EC57D26B21738D /* Pods_VApp_ios.framework */; };
 		F435ED7E2697E75900C6675C /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F435ED7D2697E75900C6675C /* AppDelegate.m */; };
-		F435ED812697E75900C6675C /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F435ED802697E75900C6675C /* SceneDelegate.m */; };
 		F435ED842697E75900C6675C /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F435ED832697E75900C6675C /* ViewController.m */; };
-		F435ED872697E75900C6675C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F435ED852697E75900C6675C /* Main.storyboard */; };
 		F435ED892697E75B00C6675C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F435ED882697E75B00C6675C /* Assets.xcassets */; };
 		F435ED8C2697E75B00C6675C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F435ED8A2697E75B00C6675C /* LaunchScreen.storyboard */; };
 		F435ED8F2697E75B00C6675C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F435ED8E2697E75B00C6675C /* main.m */; };
+		F459EAD626AA56AE00CDF6D7 /* CallTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F459EAD526AA56AE00CDF6D7 /* CallTestViewController.m */; };
+		F459EADA26AA590200CDF6D7 /* AgoraMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = F459EAD926AA590200CDF6D7 /* AgoraMessage.m */; };
+		F459EADD26AA591C00CDF6D7 /* AgoraCall.m in Sources */ = {isa = PBXBuildFile; fileRef = F459EADC26AA591C00CDF6D7 /* AgoraCall.m */; };
+		F4638A2F26B3DB080092A817 /* QHJSUtilApi.m in Sources */ = {isa = PBXBuildFile; fileRef = F4638A2E26B3DB080092A817 /* QHJSUtilApi.m */; };
+		F47C108726AFF24000CF23D2 /* WebViewJavascriptBridgeBase.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C104E26AFF24000CF23D2 /* WebViewJavascriptBridgeBase.m */; };
+		F47C108826AFF24000CF23D2 /* WKWebViewJavascriptBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C104F26AFF24000CF23D2 /* WKWebViewJavascriptBridge.m */; };
+		F47C108926AFF24000CF23D2 /* QHJSDeviceApi.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C105326AFF24000CF23D2 /* QHJSDeviceApi.m */; };
+		F47C108A26AFF24000CF23D2 /* QHJSUIApi.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C105626AFF24000CF23D2 /* QHJSUIApi.m */; };
+		F47C108B26AFF24000CF23D2 /* QHJSRuntimeApi.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C105926AFF24000CF23D2 /* QHJSRuntimeApi.m */; };
+		F47C108C26AFF24000CF23D2 /* QHJSRegisterBaseClass.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C105A26AFF24000CF23D2 /* QHJSRegisterBaseClass.m */; };
+		F47C108D26AFF24000CF23D2 /* QHJSNavigatorApi.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C105C26AFF24000CF23D2 /* QHJSNavigatorApi.m */; };
+		F47C108E26AFF24000CF23D2 /* QHJSAuthApi.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C105E26AFF24000CF23D2 /* QHJSAuthApi.m */; };
+		F47C108F26AFF24000CF23D2 /* QHJSPageApi.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C106026AFF24000CF23D2 /* QHJSPageApi.m */; };
+		F47C109026AFF24000CF23D2 /* QHJSBaseWebLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C106226AFF24000CF23D2 /* QHJSBaseWebLoader.m */; };
+		F47C109126AFF24000CF23D2 /* QHJSNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C106426AFF24000CF23D2 /* QHJSNavigationController.m */; };
+		F47C109226AFF24000CF23D2 /* QHJSBaseViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C106726AFF24000CF23D2 /* QHJSBaseViewController.m */; };
+		F47C109326AFF24000CF23D2 /* QuickHybridBundle.bundle in Resources */ = {isa = PBXBuildFile; fileRef = F47C106826AFF24000CF23D2 /* QuickHybridBundle.bundle */; };
+		F47C109426AFF24000CF23D2 /* QHJSBaseModalViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C106A26AFF24000CF23D2 /* QHJSBaseModalViewController.m */; };
+		F47C109526AFF24000CF23D2 /* QHJSNaviSegmentView.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C106B26AFF24000CF23D2 /* QHJSNaviSegmentView.m */; };
+		F47C109626AFF24000CF23D2 /* QHJSDatePickViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C106C26AFF24000CF23D2 /* QHJSDatePickViewController.m */; };
+		F47C109726AFF24000CF23D2 /* QHJSToast.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C106D26AFF24000CF23D2 /* QHJSToast.m */; };
+		F47C109826AFF24000CF23D2 /* QHJSNaviTitleView.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C107326AFF24000CF23D2 /* QHJSNaviTitleView.m */; };
+		F47C109926AFF24000CF23D2 /* QHJSDeviceInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C107726AFF24000CF23D2 /* QHJSDeviceInfo.m */; };
+		F47C109A26AFF24000CF23D2 /* TQLocationConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C107A26AFF24000CF23D2 /* TQLocationConverter.m */; };
+		F47C109B26AFF24000CF23D2 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C107D26AFF24000CF23D2 /* Reachability.m */; };
+		F47C109D26AFF24000CF23D2 /* UIImage+QHJSIamge.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C108226AFF24000CF23D2 /* UIImage+QHJSIamge.m */; };
+		F47C109E26AFF24000CF23D2 /* QHJSInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C108326AFF24000CF23D2 /* QHJSInfo.m */; };
+		F47C109F26AFF24000CF23D2 /* QHJSLocationUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = F47C108526AFF24000CF23D2 /* QHJSLocationUtil.m */; };
+		F47C10A026AFF24000CF23D2 /* QHJSModules.plist in Resources */ = {isa = PBXBuildFile; fileRef = F47C108626AFF24000CF23D2 /* QHJSModules.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1820995A65EC57D26B21738D /* Pods_VApp_ios.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_VApp_ios.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		52E16A9C0B17945F2AA1F9C2 /* Pods-VApp-ios.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VApp-ios.debug.xcconfig"; path = "Target Support Files/Pods-VApp-ios/Pods-VApp-ios.debug.xcconfig"; sourceTree = "<group>"; };
+		B7795D0A618935451A5F6623 /* Pods-VApp-ios.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-VApp-ios.release.xcconfig"; path = "Target Support Files/Pods-VApp-ios/Pods-VApp-ios.release.xcconfig"; sourceTree = "<group>"; };
 		F435ED792697E75900C6675C /* VApp-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "VApp-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F435ED7C2697E75900C6675C /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		F435ED7D2697E75900C6675C /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		F435ED7F2697E75900C6675C /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
-		F435ED802697E75900C6675C /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
 		F435ED822697E75900C6675C /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		F435ED832697E75900C6675C /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
-		F435ED862697E75900C6675C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		F435ED882697E75B00C6675C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F435ED8B2697E75B00C6675C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		F435ED8D2697E75B00C6675C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F435ED8E2697E75B00C6675C /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		F459EAD426AA56AE00CDF6D7 /* CallTestViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CallTestViewController.h; sourceTree = "<group>"; };
+		F459EAD526AA56AE00CDF6D7 /* CallTestViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CallTestViewController.m; sourceTree = "<group>"; };
+		F459EAD826AA590200CDF6D7 /* AgoraMessage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AgoraMessage.h; sourceTree = "<group>"; };
+		F459EAD926AA590200CDF6D7 /* AgoraMessage.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AgoraMessage.m; sourceTree = "<group>"; };
+		F459EADB26AA591C00CDF6D7 /* AgoraCall.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AgoraCall.h; sourceTree = "<group>"; };
+		F459EADC26AA591C00CDF6D7 /* AgoraCall.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AgoraCall.m; sourceTree = "<group>"; };
+		F4638A2D26B3DB080092A817 /* QHJSUtilApi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QHJSUtilApi.h; sourceTree = "<group>"; };
+		F4638A2E26B3DB080092A817 /* QHJSUtilApi.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QHJSUtilApi.m; sourceTree = "<group>"; };
+		F47C104E26AFF24000CF23D2 /* WebViewJavascriptBridgeBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WebViewJavascriptBridgeBase.m; sourceTree = "<group>"; };
+		F47C104F26AFF24000CF23D2 /* WKWebViewJavascriptBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WKWebViewJavascriptBridge.m; sourceTree = "<group>"; };
+		F47C105026AFF24000CF23D2 /* WebViewJavascriptBridgeBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WebViewJavascriptBridgeBase.h; sourceTree = "<group>"; };
+		F47C105126AFF24000CF23D2 /* WKWebViewJavascriptBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WKWebViewJavascriptBridge.h; sourceTree = "<group>"; };
+		F47C105326AFF24000CF23D2 /* QHJSDeviceApi.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSDeviceApi.m; sourceTree = "<group>"; };
+		F47C105426AFF24000CF23D2 /* QHJSRegisterBaseClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSRegisterBaseClass.h; sourceTree = "<group>"; };
+		F47C105526AFF24000CF23D2 /* QHJSAuthApi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSAuthApi.h; sourceTree = "<group>"; };
+		F47C105626AFF24000CF23D2 /* QHJSUIApi.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSUIApi.m; sourceTree = "<group>"; };
+		F47C105726AFF24000CF23D2 /* QHJSNavigatorApi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSNavigatorApi.h; sourceTree = "<group>"; };
+		F47C105826AFF24000CF23D2 /* QHJSPageApi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSPageApi.h; sourceTree = "<group>"; };
+		F47C105926AFF24000CF23D2 /* QHJSRuntimeApi.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSRuntimeApi.m; sourceTree = "<group>"; };
+		F47C105A26AFF24000CF23D2 /* QHJSRegisterBaseClass.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSRegisterBaseClass.m; sourceTree = "<group>"; };
+		F47C105B26AFF24000CF23D2 /* QHJSDeviceApi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSDeviceApi.h; sourceTree = "<group>"; };
+		F47C105C26AFF24000CF23D2 /* QHJSNavigatorApi.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSNavigatorApi.m; sourceTree = "<group>"; };
+		F47C105D26AFF24000CF23D2 /* QHJSUIApi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSUIApi.h; sourceTree = "<group>"; };
+		F47C105E26AFF24000CF23D2 /* QHJSAuthApi.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSAuthApi.m; sourceTree = "<group>"; };
+		F47C105F26AFF24000CF23D2 /* QHJSRuntimeApi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSRuntimeApi.h; sourceTree = "<group>"; };
+		F47C106026AFF24000CF23D2 /* QHJSPageApi.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSPageApi.m; sourceTree = "<group>"; };
+		F47C106226AFF24000CF23D2 /* QHJSBaseWebLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSBaseWebLoader.m; sourceTree = "<group>"; };
+		F47C106326AFF24000CF23D2 /* QHJSBaseViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSBaseViewController.h; sourceTree = "<group>"; };
+		F47C106426AFF24000CF23D2 /* QHJSNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSNavigationController.m; sourceTree = "<group>"; };
+		F47C106526AFF24000CF23D2 /* QHJSBaseWebLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSBaseWebLoader.h; sourceTree = "<group>"; };
+		F47C106626AFF24000CF23D2 /* QHJSNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSNavigationController.h; sourceTree = "<group>"; };
+		F47C106726AFF24000CF23D2 /* QHJSBaseViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSBaseViewController.m; sourceTree = "<group>"; };
+		F47C106826AFF24000CF23D2 /* QuickHybridBundle.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = QuickHybridBundle.bundle; sourceTree = "<group>"; };
+		F47C106A26AFF24000CF23D2 /* QHJSBaseModalViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSBaseModalViewController.m; sourceTree = "<group>"; };
+		F47C106B26AFF24000CF23D2 /* QHJSNaviSegmentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSNaviSegmentView.m; sourceTree = "<group>"; };
+		F47C106C26AFF24000CF23D2 /* QHJSDatePickViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSDatePickViewController.m; sourceTree = "<group>"; };
+		F47C106D26AFF24000CF23D2 /* QHJSToast.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSToast.m; sourceTree = "<group>"; };
+		F47C106E26AFF24000CF23D2 /* QHJSNaviTitleView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSNaviTitleView.h; sourceTree = "<group>"; };
+		F47C106F26AFF24000CF23D2 /* QHJSBaseModalViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSBaseModalViewController.h; sourceTree = "<group>"; };
+		F47C107026AFF24000CF23D2 /* QHJSDatePickViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSDatePickViewController.h; sourceTree = "<group>"; };
+		F47C107126AFF24000CF23D2 /* QHJSNaviSegmentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSNaviSegmentView.h; sourceTree = "<group>"; };
+		F47C107226AFF24000CF23D2 /* QHJSToast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSToast.h; sourceTree = "<group>"; };
+		F47C107326AFF24000CF23D2 /* QHJSNaviTitleView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSNaviTitleView.m; sourceTree = "<group>"; };
+		F47C107526AFF24000CF23D2 /* UIImage+QHJSIamge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+QHJSIamge.h"; sourceTree = "<group>"; };
+		F47C107626AFF24000CF23D2 /* QHJSLocationUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSLocationUtil.h; sourceTree = "<group>"; };
+		F47C107726AFF24000CF23D2 /* QHJSDeviceInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSDeviceInfo.m; sourceTree = "<group>"; };
+		F47C107826AFF24000CF23D2 /* QHJSInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSInfo.h; sourceTree = "<group>"; };
+		F47C107A26AFF24000CF23D2 /* TQLocationConverter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TQLocationConverter.m; sourceTree = "<group>"; };
+		F47C107B26AFF24000CF23D2 /* TQLocationConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TQLocationConverter.h; sourceTree = "<group>"; };
+		F47C107D26AFF24000CF23D2 /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
+		F47C107E26AFF24000CF23D2 /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
+		F47C108226AFF24000CF23D2 /* UIImage+QHJSIamge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+QHJSIamge.m"; sourceTree = "<group>"; };
+		F47C108326AFF24000CF23D2 /* QHJSInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSInfo.m; sourceTree = "<group>"; };
+		F47C108426AFF24000CF23D2 /* QHJSDeviceInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QHJSDeviceInfo.h; sourceTree = "<group>"; };
+		F47C108526AFF24000CF23D2 /* QHJSLocationUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QHJSLocationUtil.m; sourceTree = "<group>"; };
+		F47C108626AFF24000CF23D2 /* QHJSModules.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = QHJSModules.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,17 +120,37 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				59B8A8E37F89D2E8DCDB2ACE /* Pods_VApp_ios.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		28D51642BA6523D23EEAA805 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				52E16A9C0B17945F2AA1F9C2 /* Pods-VApp-ios.debug.xcconfig */,
+				B7795D0A618935451A5F6623 /* Pods-VApp-ios.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		3F2A821A8820072D23532376 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1820995A65EC57D26B21738D /* Pods_VApp_ios.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		F435ED702697E75900C6675C = {
 			isa = PBXGroup;
 			children = (
 				F435ED7B2697E75900C6675C /* VApp-ios */,
 				F435ED7A2697E75900C6675C /* Products */,
+				28D51642BA6523D23EEAA805 /* Pods */,
+				3F2A821A8820072D23532376 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -61,19 +165,144 @@
 		F435ED7B2697E75900C6675C /* VApp-ios */ = {
 			isa = PBXGroup;
 			children = (
+				F47C104C26AFF24000CF23D2 /* QuickHybird */,
+				F459EAD726AA58D000CDF6D7 /* AgoraModule */,
 				F435ED7C2697E75900C6675C /* AppDelegate.h */,
 				F435ED7D2697E75900C6675C /* AppDelegate.m */,
-				F435ED7F2697E75900C6675C /* SceneDelegate.h */,
-				F435ED802697E75900C6675C /* SceneDelegate.m */,
 				F435ED822697E75900C6675C /* ViewController.h */,
 				F435ED832697E75900C6675C /* ViewController.m */,
-				F435ED852697E75900C6675C /* Main.storyboard */,
 				F435ED882697E75B00C6675C /* Assets.xcassets */,
 				F435ED8A2697E75B00C6675C /* LaunchScreen.storyboard */,
 				F435ED8D2697E75B00C6675C /* Info.plist */,
 				F435ED8E2697E75B00C6675C /* main.m */,
+				F459EAD426AA56AE00CDF6D7 /* CallTestViewController.h */,
+				F459EAD526AA56AE00CDF6D7 /* CallTestViewController.m */,
 			);
 			path = "VApp-ios";
+			sourceTree = "<group>";
+		};
+		F459EAD726AA58D000CDF6D7 /* AgoraModule */ = {
+			isa = PBXGroup;
+			children = (
+				F459EAD826AA590200CDF6D7 /* AgoraMessage.h */,
+				F459EAD926AA590200CDF6D7 /* AgoraMessage.m */,
+				F459EADB26AA591C00CDF6D7 /* AgoraCall.h */,
+				F459EADC26AA591C00CDF6D7 /* AgoraCall.m */,
+			);
+			path = AgoraModule;
+			sourceTree = "<group>";
+		};
+		F47C104C26AFF24000CF23D2 /* QuickHybird */ = {
+			isa = PBXGroup;
+			children = (
+				F47C104D26AFF24000CF23D2 /* WebViewJavascriptBridge */,
+				F47C105226AFF24000CF23D2 /* QHJSFrameAPI */,
+				F47C106126AFF24000CF23D2 /* QuickHybridCore */,
+				F47C106826AFF24000CF23D2 /* QuickHybridBundle.bundle */,
+				F47C106926AFF24000CF23D2 /* QuickHybridComponents */,
+				F47C107426AFF24000CF23D2 /* QuickHybridUtils */,
+				F47C108626AFF24000CF23D2 /* QHJSModules.plist */,
+			);
+			path = QuickHybird;
+			sourceTree = "<group>";
+		};
+		F47C104D26AFF24000CF23D2 /* WebViewJavascriptBridge */ = {
+			isa = PBXGroup;
+			children = (
+				F47C104E26AFF24000CF23D2 /* WebViewJavascriptBridgeBase.m */,
+				F47C104F26AFF24000CF23D2 /* WKWebViewJavascriptBridge.m */,
+				F47C105026AFF24000CF23D2 /* WebViewJavascriptBridgeBase.h */,
+				F47C105126AFF24000CF23D2 /* WKWebViewJavascriptBridge.h */,
+			);
+			path = WebViewJavascriptBridge;
+			sourceTree = "<group>";
+		};
+		F47C105226AFF24000CF23D2 /* QHJSFrameAPI */ = {
+			isa = PBXGroup;
+			children = (
+				F47C105326AFF24000CF23D2 /* QHJSDeviceApi.m */,
+				F47C105426AFF24000CF23D2 /* QHJSRegisterBaseClass.h */,
+				F47C105526AFF24000CF23D2 /* QHJSAuthApi.h */,
+				F47C105626AFF24000CF23D2 /* QHJSUIApi.m */,
+				F47C105726AFF24000CF23D2 /* QHJSNavigatorApi.h */,
+				F47C105826AFF24000CF23D2 /* QHJSPageApi.h */,
+				F47C105926AFF24000CF23D2 /* QHJSRuntimeApi.m */,
+				F47C105A26AFF24000CF23D2 /* QHJSRegisterBaseClass.m */,
+				F47C105B26AFF24000CF23D2 /* QHJSDeviceApi.h */,
+				F47C105C26AFF24000CF23D2 /* QHJSNavigatorApi.m */,
+				F47C105D26AFF24000CF23D2 /* QHJSUIApi.h */,
+				F47C105E26AFF24000CF23D2 /* QHJSAuthApi.m */,
+				F47C105F26AFF24000CF23D2 /* QHJSRuntimeApi.h */,
+				F47C106026AFF24000CF23D2 /* QHJSPageApi.m */,
+				F4638A2D26B3DB080092A817 /* QHJSUtilApi.h */,
+				F4638A2E26B3DB080092A817 /* QHJSUtilApi.m */,
+			);
+			path = QHJSFrameAPI;
+			sourceTree = "<group>";
+		};
+		F47C106126AFF24000CF23D2 /* QuickHybridCore */ = {
+			isa = PBXGroup;
+			children = (
+				F47C106226AFF24000CF23D2 /* QHJSBaseWebLoader.m */,
+				F47C106326AFF24000CF23D2 /* QHJSBaseViewController.h */,
+				F47C106426AFF24000CF23D2 /* QHJSNavigationController.m */,
+				F47C106526AFF24000CF23D2 /* QHJSBaseWebLoader.h */,
+				F47C106626AFF24000CF23D2 /* QHJSNavigationController.h */,
+				F47C106726AFF24000CF23D2 /* QHJSBaseViewController.m */,
+			);
+			path = QuickHybridCore;
+			sourceTree = "<group>";
+		};
+		F47C106926AFF24000CF23D2 /* QuickHybridComponents */ = {
+			isa = PBXGroup;
+			children = (
+				F47C106A26AFF24000CF23D2 /* QHJSBaseModalViewController.m */,
+				F47C106B26AFF24000CF23D2 /* QHJSNaviSegmentView.m */,
+				F47C106C26AFF24000CF23D2 /* QHJSDatePickViewController.m */,
+				F47C106D26AFF24000CF23D2 /* QHJSToast.m */,
+				F47C106E26AFF24000CF23D2 /* QHJSNaviTitleView.h */,
+				F47C106F26AFF24000CF23D2 /* QHJSBaseModalViewController.h */,
+				F47C107026AFF24000CF23D2 /* QHJSDatePickViewController.h */,
+				F47C107126AFF24000CF23D2 /* QHJSNaviSegmentView.h */,
+				F47C107226AFF24000CF23D2 /* QHJSToast.h */,
+				F47C107326AFF24000CF23D2 /* QHJSNaviTitleView.m */,
+			);
+			path = QuickHybridComponents;
+			sourceTree = "<group>";
+		};
+		F47C107426AFF24000CF23D2 /* QuickHybridUtils */ = {
+			isa = PBXGroup;
+			children = (
+				F47C107526AFF24000CF23D2 /* UIImage+QHJSIamge.h */,
+				F47C107626AFF24000CF23D2 /* QHJSLocationUtil.h */,
+				F47C107726AFF24000CF23D2 /* QHJSDeviceInfo.m */,
+				F47C107826AFF24000CF23D2 /* QHJSInfo.h */,
+				F47C107926AFF24000CF23D2 /* PublicTool */,
+				F47C108226AFF24000CF23D2 /* UIImage+QHJSIamge.m */,
+				F47C108326AFF24000CF23D2 /* QHJSInfo.m */,
+				F47C108426AFF24000CF23D2 /* QHJSDeviceInfo.h */,
+				F47C108526AFF24000CF23D2 /* QHJSLocationUtil.m */,
+			);
+			path = QuickHybridUtils;
+			sourceTree = "<group>";
+		};
+		F47C107926AFF24000CF23D2 /* PublicTool */ = {
+			isa = PBXGroup;
+			children = (
+				F47C107A26AFF24000CF23D2 /* TQLocationConverter.m */,
+				F47C107B26AFF24000CF23D2 /* TQLocationConverter.h */,
+				F47C107C26AFF24000CF23D2 /* Reachability */,
+			);
+			path = PublicTool;
+			sourceTree = "<group>";
+		};
+		F47C107C26AFF24000CF23D2 /* Reachability */ = {
+			isa = PBXGroup;
+			children = (
+				F47C107D26AFF24000CF23D2 /* Reachability.m */,
+				F47C107E26AFF24000CF23D2 /* Reachability.h */,
+			);
+			path = Reachability;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -83,9 +312,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F435ED922697E75B00C6675C /* Build configuration list for PBXNativeTarget "VApp-ios" */;
 			buildPhases = (
+				56EC6F79FF41696F76DD0ACF /* [CP] Check Pods Manifest.lock */,
 				F435ED752697E75900C6675C /* Sources */,
 				F435ED762697E75900C6675C /* Frameworks */,
 				F435ED772697E75900C6675C /* Resources */,
+				813679F9B1E343106EE139CA /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -132,37 +363,98 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F47C109326AFF24000CF23D2 /* QuickHybridBundle.bundle in Resources */,
 				F435ED8C2697E75B00C6675C /* LaunchScreen.storyboard in Resources */,
+				F47C10A026AFF24000CF23D2 /* QHJSModules.plist in Resources */,
 				F435ED892697E75B00C6675C /* Assets.xcassets in Resources */,
-				F435ED872697E75900C6675C /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		56EC6F79FF41696F76DD0ACF /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-VApp-ios-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		813679F9B1E343106EE139CA /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-VApp-ios/Pods-VApp-ios-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-VApp-ios/Pods-VApp-ios-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-VApp-ios/Pods-VApp-ios-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F435ED752697E75900C6675C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F47C108726AFF24000CF23D2 /* WebViewJavascriptBridgeBase.m in Sources */,
+				F47C109726AFF24000CF23D2 /* QHJSToast.m in Sources */,
+				F47C109526AFF24000CF23D2 /* QHJSNaviSegmentView.m in Sources */,
+				F47C109126AFF24000CF23D2 /* QHJSNavigationController.m in Sources */,
+				F47C108C26AFF24000CF23D2 /* QHJSRegisterBaseClass.m in Sources */,
+				F47C109E26AFF24000CF23D2 /* QHJSInfo.m in Sources */,
+				F47C109226AFF24000CF23D2 /* QHJSBaseViewController.m in Sources */,
+				F459EAD626AA56AE00CDF6D7 /* CallTestViewController.m in Sources */,
+				F47C109426AFF24000CF23D2 /* QHJSBaseModalViewController.m in Sources */,
 				F435ED842697E75900C6675C /* ViewController.m in Sources */,
+				F4638A2F26B3DB080092A817 /* QHJSUtilApi.m in Sources */,
+				F47C108B26AFF24000CF23D2 /* QHJSRuntimeApi.m in Sources */,
+				F47C108F26AFF24000CF23D2 /* QHJSPageApi.m in Sources */,
 				F435ED7E2697E75900C6675C /* AppDelegate.m in Sources */,
+				F47C109926AFF24000CF23D2 /* QHJSDeviceInfo.m in Sources */,
+				F47C109F26AFF24000CF23D2 /* QHJSLocationUtil.m in Sources */,
+				F47C108E26AFF24000CF23D2 /* QHJSAuthApi.m in Sources */,
+				F47C109D26AFF24000CF23D2 /* UIImage+QHJSIamge.m in Sources */,
+				F47C109A26AFF24000CF23D2 /* TQLocationConverter.m in Sources */,
+				F47C108926AFF24000CF23D2 /* QHJSDeviceApi.m in Sources */,
+				F47C109626AFF24000CF23D2 /* QHJSDatePickViewController.m in Sources */,
+				F47C108A26AFF24000CF23D2 /* QHJSUIApi.m in Sources */,
+				F47C108826AFF24000CF23D2 /* WKWebViewJavascriptBridge.m in Sources */,
+				F47C108D26AFF24000CF23D2 /* QHJSNavigatorApi.m in Sources */,
+				F459EADA26AA590200CDF6D7 /* AgoraMessage.m in Sources */,
 				F435ED8F2697E75B00C6675C /* main.m in Sources */,
-				F435ED812697E75900C6675C /* SceneDelegate.m in Sources */,
+				F459EADD26AA591C00CDF6D7 /* AgoraCall.m in Sources */,
+				F47C109026AFF24000CF23D2 /* QHJSBaseWebLoader.m in Sources */,
+				F47C109B26AFF24000CF23D2 /* Reachability.m in Sources */,
+				F47C109826AFF24000CF23D2 /* QHJSNaviTitleView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		F435ED852697E75900C6675C /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				F435ED862697E75900C6675C /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 		F435ED8A2697E75B00C6675C /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -288,35 +580,39 @@
 		};
 		F435ED932697E75B00C6675C /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 52E16A9C0B17945F2AA1F9C2 /* Pods-VApp-ios.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 865KNJ3G54;
+				DEVELOPMENT_TEAM = 63DFZDU5NX;
 				INFOPLIST_FILE = "VApp-ios/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "sun.VApp-ios";
+				PRODUCT_BUNDLE_IDENTIFIER = com.info.silversea;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
 		F435ED942697E75B00C6675C /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B7795D0A618935451A5F6623 /* Pods-VApp-ios.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 865KNJ3G54;
+				DEVELOPMENT_TEAM = 63DFZDU5NX;
 				INFOPLIST_FILE = "VApp-ios/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "sun.VApp-ios";
+				PRODUCT_BUNDLE_IDENTIFIER = com.info.silversea;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
