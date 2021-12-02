@@ -8,10 +8,17 @@
 
 #import "QHJSBaseWebLoader.h"
 #import "WKWebViewJavascriptBridge.h"
+#import <AgoraRtmKit/AgoraRtmKit.h>
+#import <AgoraRtcKit/AgoraRtcEngineKit.h>
+#import "JSONKit.h"
+#import "AFNetworking.h"
+
+#define ssRGBHex(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
+
 
 static NSString *KVOContext;
 
-@interface QHJSBaseWebLoader () <WKUIDelegate, WKNavigationDelegate>
+@interface QHJSBaseWebLoader () <WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler, AgoraRtmChannelDelegate, AgoraRtmDelegate, AgoraRtcEngineDelegate>
 /** JSBridge */
 @property (nonatomic, strong) WKWebViewJavascriptBridge *bridge;
 /** 页面加载进度条 */
@@ -29,6 +36,30 @@ static NSString *KVOContext;
 
 /** 导航栏左上角按钮 */
 @property (nonatomic, strong) UIBarButtonItem *leftBarButtonItem;
+
+
+// 声网代码
+
+@property (nonatomic, strong) AgoraRtmKit *kit;
+@property (nonatomic, strong) AgoraRtmChannel* channel;
+@property (nonatomic, strong) AgoraRtmSendMessageOptions* options;
+@property NSString* appID;
+@property NSString* token;
+
+@property NSString* uid;
+@property NSString* peerID;
+@property NSString* channelID;
+@property NSString* peerMsg;
+@property NSString* channelMsg;
+
+@property (strong, nonatomic) AgoraRtcEngineKit *agoraKit;
+
+@property NSString *agoraAudioAppId;
+@property NSString *agoraAudioToken;
+@property NSString *videoChannelName;
+
+@property NSString* text;
+
 @end
 
 @implementation QHJSBaseWebLoader
@@ -40,14 +71,36 @@ static NSString *KVOContext;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         //获取默认UA
-        NSString *defaultUA = [[UIWebView new] stringByEvaluatingJavaScriptFromString:@"navigator.userAgent"];
-        
-        //设置UA格式，和h5约定
+        NSString *userAgent = @"Mozilla/5.0 (iPhone; CPU iPhone OS 15_0_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148";
         NSString *version = [QHJSInfo getQHJSVersion];
-        NSString *customerUA = [defaultUA stringByAppendingString:[NSString stringWithFormat:@" QuickHybridJs/%@", version]];
-        
+        NSString *customerUA = [userAgent stringByAppendingString:[NSString stringWithFormat:@" QuickHybridJs/%@", version]];
+
         [[NSUserDefaults standardUserDefaults] registerDefaults:@{@"UserAgent":customerUA}];
         [[NSUserDefaults standardUserDefaults] synchronize];
+
+        WKWebView *_webview = [[WKWebView alloc] init];
+
+        NSURLRequest *request = [[NSURLRequest alloc] initWithURL:[NSURL URLWithString:@"https://www.baidu.com"] cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:10];
+        [_webview loadRequest:request];
+
+        [_webview evaluateJavaScript:@"navigator.userAgent" completionHandler:^(id result, NSError *error) {
+
+            if ([result isKindOfClass:[NSString class]]) {
+                NSString *userAgent = result;
+                NSString *version = [QHJSInfo getQHJSVersion];
+                NSString *customerUA = [userAgent stringByAppendingString:[NSString stringWithFormat:@" QuickHybridJs/%@", version]];
+
+                [[NSUserDefaults standardUserDefaults] registerDefaults:@{@"UserAgent":customerUA}];
+                [[NSUserDefaults standardUserDefaults] synchronize];
+            } else {
+                NSString *userAgent = @"Mozilla/5.0 (iPhone; CPU iPhone OS 15_0_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148";
+                NSString *version = [QHJSInfo getQHJSVersion];
+                NSString *customerUA = [userAgent stringByAppendingString:[NSString stringWithFormat:@" QuickHybridJs/%@", version]];
+
+                [[NSUserDefaults standardUserDefaults] registerDefaults:@{@"UserAgent":customerUA}];
+                [[NSUserDefaults standardUserDefaults] synchronize];
+            }
+        }];
     });
 }
 
@@ -59,6 +112,8 @@ static NSString *KVOContext;
     // 创建WKWebView
     [self createWKWebView];
     
+//    self.navigationController.navigationBar.barTintColor = [UIColor greenColor];
+    
     // 注册KVO
     [self.wv addObserver:self forKeyPath:@"title" options:NSKeyValueObservingOptionNew context:&KVOContext];
     [self.wv addObserver:self forKeyPath:@"estimatedProgress" options:NSKeyValueObservingOptionNew context:&KVOContext];
@@ -68,16 +123,243 @@ static NSString *KVOContext;
     
     // 加载H5页面
     [self loadHTML];
+    
+    self.appID = @""; // appId;
+    self.agoraAudioAppId = @"511767b5f6974accbae15e9022518589";
+    self.agoraAudioToken = @"0063dc9b22d18a8405ea10efc0fcc2054d7IADnBF5ZR63DTgvhR0S+tKqlRJqJH9LmVbFp4Qf+T8x0pz37XygAAAAAEABgsZT+f7o+YQEAAQB+uj5h";
+
+    self.kit = [[AgoraRtmKit alloc] initWithAppId:self.appID delegate:self];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     //导航栏参数
-    [self.navigationController setNavigationBarHidden:NO animated:YES];
+//    [self.navigationController setNavigationBarHidden:YES animated:YES];
     if ([[[self.params valueForKey:@"pageStyle"] stringValue] isEqualToString:@"-1"]) {
         [self.navigationController setNavigationBarHidden:YES animated:YES];
     }
+
+    [self setStatusBarBackgroundColor:ssRGBHex(0xCAC0BB)];
 }
+
+- (void)setStatusBarBackgroundColor:(UIColor *)color {
+    
+    if (@available(iOS 13.0, *)) {
+        static UIView *statusBar = nil;
+        if (!statusBar) {
+            static dispatch_once_t onceToken;
+            dispatch_once(&onceToken, ^{
+                statusBar = [[UIView alloc] initWithFrame:[UIApplication sharedApplication].keyWindow.windowScene.statusBarManager.statusBarFrame];
+                
+                statusBar.backgroundColor = color;
+                [[UIApplication sharedApplication].keyWindow addSubview:statusBar];
+            });
+        } else {
+            statusBar.backgroundColor = color;
+        }
+    } else {
+        UIView *statusBar = [[[UIApplication sharedApplication] valueForKey:@"statusBarWindow"] valueForKey:@"statusBar"];
+        if ([statusBar respondsToSelector:@selector(setBackgroundColor:)]) {
+            statusBar.backgroundColor = color;
+        }
+    }
+}
+#pragma mark --- 语音初始化
+- (void)initializeAgoraEngine {
+    // 初始化 AgoraRtcEngineKit 对象
+    self.agoraKit = [AgoraRtcEngineKit sharedEngineWithAppId:self.agoraAudioAppId delegate:self];
+}
+
+- (void)joinVideoChannelId:(NSString *)channelId byUserId: (NSString *)userId {
+    NSInteger uid = [userId integerValue];
+    [self.agoraKit joinChannelByToken:self.agoraAudioToken channelId:channelId info:nil uid:uid joinSuccess:^(NSString * _Nonnull channel, NSUInteger uid, NSInteger elapsed) {
+        NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:3];
+        [dict setValue:@"joinChannelSuccess" forKey:@"type"];
+        [dict setValue:channelId forKey:@"channelName"];
+        [dict setValue:userId forKey:@"userId"];
+        
+        NSString *msg = [self dictToStr:dict];
+        [self onData:msg];
+    }];
+}
+
+- (void)leavelAudioChannel {
+    [self.agoraKit leaveChannel:^(AgoraChannelStats * _Nonnull stat) {
+        NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:3];
+        [dict setValue:@"leavelChannel" forKey:@"type"];
+        [dict setValue:self.videoChannelName forKey:@"channelName"];
+        [dict setValue:self.uid forKey:@"userId"];
+        
+        NSString *msg = [self dictToStr:dict];
+        [self onData:msg];
+    }];
+}
+
+- (void)adjustAudioVolume: (int) num {
+    [self.agoraKit adjustRecordingSignalVolume: num];
+}
+#pragma mark --- 语音监听
+
+- (void)rtmKit:(AgoraRtmKit *)kit connectionStateChanged:(AgoraRtmConnectionState)state reason:(AgoraRtmConnectionChangeReason)reason {
+    NSLog(@"connection state changed %d reason = %d", (int)state, (int)reason);
+}
+
+
+#pragma mark --- 声网云信令初始化
+
+
+- (void)loginWithUserId:(NSString *)userId andToken:(NSString *)token {
+    self.uid = userId;
+    self.token = token;
+    
+    [self.kit loginByToken:token user:userId completion:^(AgoraRtmLoginErrorCode errorCode) {
+        if (errorCode != AgoraRtmLoginErrorOk){
+            self.text = [NSString stringWithFormat:@"Login failed for user %@. Code: %ld",self.uid, (long)errorCode];
+                        NSLog(@"%@", self.text);
+            NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:4];
+            [dict setValue:@"initMessageActionFail" forKey:@"type"];
+            [dict setValue:self.uid forKey:@"userId"];
+            [dict setValue:[NSString stringWithFormat:@"%d", (int)errorCode] forKey:@"errorCode"];
+            
+            NSString *msg = [self dictToStr:dict];
+            [self onData:msg];
+        } else {
+            NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:4];
+            [dict setValue:@"initMessageActionSuccess" forKey:@"type"];
+            [dict setValue:self.uid forKey:@"userId"];
+            
+            NSString *msg = [self dictToStr:dict];
+            [self onData:msg];
+        }
+    }];
+}
+
+- (void)logout {
+    [self.kit logoutWithCompletion:^(AgoraRtmLogoutErrorCode errorCode) {
+        if (errorCode == AgoraRtmLogoutErrorOk){
+            self.text = [NSString stringWithFormat:@"Logout successful. Code: %ld",(long)errorCode];
+            NSLog(@"%@", self.text);
+        } else {
+            self.text = [NSString stringWithFormat:@"Logout failed. Code: %ld",(long)errorCode];
+            NSLog(@"%@", self.text);
+        }
+    }];
+}
+
+- (void)joinChannel: (NSString *)channelName {
+    self.channelID = channelName;
+    self.channel = [self.kit createChannelWithId:self.channelID delegate:self];
+    [self.channel joinWithCompletion:^(AgoraRtmJoinChannelErrorCode errorCode) {
+        if(errorCode == AgoraRtmJoinChannelErrorOk){
+            self.text = [NSString stringWithFormat:@"Successfully joined channel %@ Code: %ld",self.channelID,(long)errorCode];
+            NSLog(@"%@", self.text);
+        } else {
+            self.text = [NSString stringWithFormat:@"Failed to join channel %@ Code: %ld",self.channelID, (long)errorCode];
+            NSLog(@"%@", self.text);
+        }
+    }];
+}
+
+- (void)leaveChannel: (NSString *)channelName {
+    [self.channel leaveWithCompletion:^(AgoraRtmLeaveChannelErrorCode errorCode) {
+        if (errorCode == AgoraRtmLeaveChannelErrorOk){
+            self.text = [NSString stringWithFormat:@"Leave channel successful Code: %ld", (long)errorCode];
+        } else {
+            self.text = [NSString stringWithFormat:@"Failed to leave channel Code: %ld", (long)errorCode];
+        }
+        NSLog(@"%@", self.text);
+    }];
+}
+
+- (void)sendGroupMessage: (NSString *)message {
+    AgoraRtmMessage *rtMessage = [[AgoraRtmMessage alloc] initWithText:message];
+    self.options.enableOfflineMessaging = true;
+    [self.channel sendMessage:rtMessage sendMessageOptions:self.options completion:^(AgoraRtmSendChannelMessageErrorCode errorCode) {
+        if (errorCode == AgoraRtmSendChannelMessageErrorOk) {
+            self.text = [NSString stringWithFormat:@"Message sent to channel %@ : %@", self.channelID, self.channelMsg];
+        } else {
+            self.text = [NSString stringWithFormat:@"Message failed to send to channel %@ : %@ ErrorCode: %ld", self.channelID, self.channelMsg, (long)errorCode];
+        }
+        NSLog(@"%@", self.text);
+    }];
+}
+
+- (void)sendPeerMessage:(NSString *)message toPeerId:(NSString *)peerId {
+    AgoraRtmMessage *rtmMessage = [[AgoraRtmMessage alloc] initWithText:message];
+    self.peerMsg = message;
+    self.peerID = peerId;
+    [self.kit sendMessage:rtmMessage toPeer:peerId completion:^(AgoraRtmSendPeerMessageErrorCode errorCode) {
+        if (errorCode == AgoraRtmSendPeerMessageErrorOk) {
+            self.text = [NSString stringWithFormat:@"Message sent from user: %@ to user: %@ content: %@", self.uid, self.peerID, self.peerMsg];
+        } else {
+            self.text = [NSString stringWithFormat:@"Message failed to send from user: %@ to user: %@ content: %@ Error: %ld", self.uid, self.peerID, self.peerMsg, (long)errorCode];
+        }
+        NSLog(@"%@", self.text);
+    }];
+}
+
+#pragma mark --- 声网云信令监听
+- (void)channel:(AgoraRtmChannel *)channel memberLeft:(AgoraRtmMember *)member {
+    self.text = [NSString stringWithFormat:@"%@ left channel %@", member.channelId, member.userId];
+    NSLog(@"%@", self.text);
+}
+
+- (void)channel:(AgoraRtmChannel *)channel memberJoined:(AgoraRtmMember *)member
+{
+    self.text = [NSString stringWithFormat:@"%@ joined channel %@", member.channelId, member.userId];
+    NSLog(@"%@", self.text);
+}
+
+// 从群组中收到信息
+- (void)channel:(AgoraRtmChannel *)channel messageReceived:(AgoraRtmMessage *)message fromMember:(AgoraRtmMember *)member {
+    self.text = [NSString stringWithFormat:@"Message received in channel: %@ from user: %@ content: %@",member.channelId, member.userId, message.text];
+    NSLog(@"%@", self.text);
+}
+
+// 从某个人中收到信息
+- (void)rtmKit:(AgoraRtmKit *)kit messageReceived:(AgoraRtmMessage *)message fromPeer:(NSString *)peerId {
+    self.text = [NSString stringWithFormat:@"Message received from user: %@ content: %@", peerId, message.text];
+    
+    if ([message.text isKindOfClass:[NSString class]]) {
+        NSDictionary *receiveData = [self parseJSON:message.text];
+        
+        NSDictionary *data = [receiveData valueForKey:@"data"];
+        
+        if (data) {
+            NSString *state = [data valueForKey:@"state"];
+            
+            if ([state isEqualToString:@"initdone"]) {
+                
+                if (![self.peerID isEqual:@""] && ![self.peerID isEqualToString:peerId]) {
+                    [self onData:message.text];
+                    [self onChatUpdate:@"3"];
+                }
+                
+            }
+        } else if ([receiveData valueForKey:@"type"]) {
+            NSString *type = [receiveData valueForKey:@"type"];
+            
+            if ([type isEqualToString:@"app-hangup"]) {
+                
+                if ([receiveData valueForKey:@"hangupType"] && [[receiveData valueForKey:@"hangupType"] isEqualToString:@"7"]) {
+                    [self onChatUpdate:@"7"];
+                } else {
+                    // android是这样做的照抄
+                    [self onChatUpdate:@"3"];
+                    [self onChatUpdate:@"5"];
+                }
+                
+            }
+        }
+        
+        
+        [self onData:message.text];
+    }
+    
+    NSLog(@"%@", self.text);
+}
+
+
 
 /**
  创建WKWebView
@@ -101,7 +383,11 @@ static NSString *KVOContext;
     // 创建webView容器
     WKWebViewConfiguration *webConfig = [[WKWebViewConfiguration alloc] init];
     WKUserContentController *userContentVC = [[WKUserContentController alloc] init];
+    
+    [self addScripts: userContentVC];
+    
     webConfig.userContentController = userContentVC;
+    
     WKWebView *wk = [[WKWebView alloc] initWithFrame:CGRectZero configuration:webConfig];
     [self.view addSubview:wk];
     self.wv = wk;
@@ -125,6 +411,24 @@ static NSString *KVOContext;
     [self.bridge setWebViewDelegate:self];
     
     [self.wv.configuration.userContentController addScriptMessageHandler:self.bridge name:@"WKWebViewJavascriptBridge"];
+//    [self.wv.configuration.userContentController addScriptMessageHandler:self.bridge name:@"WebBridge"];
+
+}
+
+- (void)addScripts:(WKUserContentController *)userConfig {
+    [userConfig addScriptMessageHandler:self name:@"sendVRCard"];
+    [userConfig addScriptMessageHandler:self name:@"getUserInfo"];
+    [userConfig addScriptMessageHandler:self name:@"call"];
+    [userConfig addScriptMessageHandler:self name:@"hangup"];
+    [userConfig addScriptMessageHandler:self name:@"refuse"];
+    [userConfig addScriptMessageHandler:self name:@"accept"];
+    [userConfig addScriptMessageHandler:self name:@"getLog"];
+    [userConfig addScriptMessageHandler:self name:@"mute"];
+    [userConfig addScriptMessageHandler:self name:@"unmute"];
+    [userConfig addScriptMessageHandler:self name:@"initMessageAction"];
+    [userConfig addScriptMessageHandler:self name:@"login"];
+    [userConfig addScriptMessageHandler:self name:@"jumpToWebView"];
+    [userConfig addScriptMessageHandler:self name:@"sendData"];
 }
 
 /**
@@ -512,6 +816,219 @@ static NSString *KVOContext;
     }
 }
 
+#pragma mark - WKScriptMessageHandler
+- (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
+    if ([message.name isEqualToString:@"sendVRCard"]) {
+    //这个是传过来的参数
+        NSLog(@"%@",message.body);
+// // 回调JS方法
+//    [_wkWebView evaluateJavaScript:@"nativeCallbackJscMothod('123')" completionHandler:^(id _Nullable x, NSError * _Nullable error) {
+////        NSLog(@"x = %@, error = %@", x, error.localizedDescription);
+//    }];
+        }
+    
+    if ([message.name isEqualToString:@"getUserInfo"]) {
+        //这个是传过来的参数
+        NSLog(@"%@",message.body);
+    }
+    
+    if ([message.name isEqualToString:@"call"]) {
+        //这个是传过来的参数
+        NSLog(@"%@",message.body);
+        if ([message.body isKindOfClass:[NSString class]]) {
+            NSDictionary *resultData = [self parseJSON:message.body];
+            
+            NSString *roomId = [resultData valueForKey:@"roomid"];
+            NSString *houseId = [resultData valueForKey:@"houseid"];
+            NSString *houseUrl = [resultData valueForKey:@"houseurl"];
+            NSString *channelName = [resultData valueForKey:@"channelName"];
+            
+            NSString *peerId = [resultData valueForKey:@"peerId"];
+            self.peerID = peerId;
+            
+            NSMutableDictionary *callDict = [[NSMutableDictionary alloc] initWithCapacity:6];
+            
+            [callDict setValue:roomId forKey:@"roomid"];
+            [callDict setValue:houseId forKey:@"houseid"];
+            [callDict setValue:houseUrl forKey:@"houseurl"];
+            if (!channelName) {
+                [callDict setValue:self.videoChannelName forKey:@"channelName"];
+            } else {
+                [callDict setValue:channelName forKey:channelName];
+            }
+            [callDict setValue:@"app-call" forKey:@"type"];
+            
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:callDict options:NSJSONWritingPrettyPrinted error:nil];
+            
+            NSString *msg = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+
+            [self sendPeerMessage:msg toPeerId:peerId];
+        }
+        
+    }
+    
+    if ([message.name isEqualToString:@"hangup"]) {
+        //这个是传过来的参数
+        NSLog(@"%@",message.body);
+        
+        if ([message.body isKindOfClass:[NSString class]]) {
+            NSDictionary *resultDict = [self parseJSON: message.body];
+            NSString *peerId = [resultDict valueForKey:@"peerId"];
+            
+            if (!peerId) {
+                peerId = self.peerID;
+            }
+            
+            [self leavelAudioChannel];
+            
+            NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:2];
+            [dict setValue:@(8) forKey:@"status"];
+            
+            NSString *msg = [self dictToStr: dict];
+            
+            [self onChatUpdate:msg];
+            
+            NSMutableDictionary *hangUpDict = [[NSMutableDictionary alloc] initWithCapacity:3];
+            [hangUpDict setValue:@"mini-hangup" forKey:@"type"];
+            [hangUpDict setValue:@(8) forKey:@"hangupType"];
+            [hangUpDict setValue:@(8) forKey:@"status"];
+            
+            NSString *hangUpMsg = [self dictToStr:hangUpDict];
+            [self sendPeerMessage:hangUpMsg toPeerId:peerId];
+        }
+    }
+    
+    if ([message.name isEqualToString:@"refuse"]) {
+        // 拒绝
+        NSLog(@"%@",message.body);
+        
+        if ([message.body isKindOfClass:[NSString class]]) {
+            NSDictionary *resultDict = [self parseJSON:message.body];
+            
+            NSString *peerId = [resultDict valueForKey:@"peerId"];
+            
+            NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:3];
+            
+            [dict setValue:@"refuse" forKey:@"type"];
+            [dict setValue:@(5) forKey:@"status"];
+            NSString *refuseMsg = [self dictToStr:dict];
+            if (!peerId) {
+                peerId = self.peerID;
+            }
+            [self sendPeerMessage:refuseMsg toPeerId:peerId];
+        }
+    }
+    
+    if ([message.name isEqualToString:@"accept"]) {
+        // 接受消息
+        NSLog(@"%@",message.body);
+        
+        if ([message.body isKindOfClass:[NSString class]]) {
+            NSDictionary *resultDict = [self parseJSON:message.body];
+            
+            NSString *roomId = [resultDict valueForKey:@"roomid"];
+            NSString *houseId = [resultDict valueForKey:@"houseid"];
+            NSString *houseUrl = [resultDict valueForKey:@"houseurl"];
+            NSString *channelName = [resultDict valueForKey:@"channelName"];
+            NSString *peerId = [resultDict valueForKey:@"peerId"];
+            
+            if (!peerId) {
+                NSLog(@"no peerid");
+                return;;
+            }
+            self.peerID = peerId;
+            NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:7];
+            
+            [dict setValue:roomId forKey:@"roomid"];
+            [dict setValue:houseId forKey:@"houseid"];
+            [dict setValue:houseUrl forKey:@"houseurl"];
+            [dict setValue:channelName forKey:@"channelName"];
+            [dict setValue:peerId forKey:@"peerId"];
+            [dict setValue:@"accept" forKey:@"type"];
+            [dict setValue:@(3) forKey:@"status"];
+            
+            NSString *msg = [self dictToStr:dict];
+            [self sendPeerMessage:msg toPeerId:peerId];
+        }
+    }
+    
+    if ([message.name isEqualToString:@"getLog"]) {
+        //这个是传过来的参数
+        NSLog(@"%@",message.body);
+    }
+    
+    if ([message.name isEqualToString:@"mute"]) {
+        //这个是传过来的参数
+        NSLog(@"%@",message.body);
+        [self adjustAudioVolume:0];
+    }
+    
+    if ([message.name isEqualToString:@"unmute"]) {
+        //这个是传过来的参数
+        NSLog(@"%@",message.body);
+        
+        [self adjustAudioVolume:50];
+    }
+    
+    if ([message.name isEqualToString:@"initMessageAction"]) {
+        NSLog(@"initMessageAction === %@",message.body);
+        if ([message.body isKindOfClass:[NSString class]]) {
+            NSDictionary *resultDict = [self parseJSON: message.body];
+            // userId 是必传的
+            self.uid = [resultDict objectForKey:@"userId"];
+            if ([resultDict objectForKey:@"audioToken"]) {
+                self.agoraAudioToken = [resultDict objectForKey:@"audioToken"];
+            }
+            if ([resultDict objectForKey:@"token"]) {
+                self.token = [resultDict objectForKey:@"token"];
+            }
+            [self initializeAgoraEngine];
+            [self logout];
+            // 登录云信令
+            [self loginWithUserId:self.uid andToken:self.token];
+        }
+    }
+    
+    if ([message.name isEqualToString:@"joinChannel"]) {
+        // 加入音频频道
+        if ([message.body isKindOfClass:[NSString class]]) {
+            NSDictionary *resultDict = [self parseJSON:message.body];
+            self.videoChannelName = [resultDict valueForKey:@"channelName"];
+            
+            if ([resultDict valueForKey:@"audioToken"]) {
+                self.agoraAudioToken = [resultDict valueForKey:@"audioToken"];
+                [self joinVideoChannelId:self.videoChannelName byUserId:self.uid];
+            } else {
+                [self requestToken];
+            }
+        }
+    }
+    
+    if ([message.name isEqualToString:@"login"]) {
+        NSLog(@"%@", message.body);
+    }
+    
+    if ([message.name isEqualToString:@"jumpToWebView"]) {
+        NSLog(@"%@", message.body);
+        
+        if ([message.body isKindOfClass:[NSString class]]) {
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:message.body] options:[[NSDictionary alloc] init] completionHandler:^(BOOL success) {
+                            
+            }];
+        }
+        
+    }
+    
+    if ([message.name isEqualToString:@"sendData"]) {
+        
+        if ([message.body isKindOfClass:[NSString class]]) {
+            
+        }
+        
+        [self sendPeerMessage:message.body toPeerId:self.peerID];
+    }
+}
+
 #pragma mark --- MFMessageComposeViewControllerDelegate
 
 - (void)messageComposeViewController:(MFMessageComposeViewController *)controller didFinishWithResult:(MessageComposeResult)result {
@@ -535,5 +1052,61 @@ static NSString *KVOContext;
     
     NSLog(@"<QHJSBaseWebLoader>dealloc");
 }
+
+- (NSDictionary *)parseJSON: (NSString *)str {
+    NSData* jsonData = [str dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary *resultDict = [jsonData objectFromJSONData];
+    return resultDict;
+}
+
+- (void)onData:(NSString *)str {
+    
+    NSString *script = [NSString stringWithFormat:@"onData('%@')", str];
+    
+    [self.wv evaluateJavaScript:script completionHandler:^(id _Nullable x, NSError * _Nullable error) {
+        
+    }];
+}
+
+- (void)onChatUpdate:(NSString *)str {
+    NSString *script = [NSString stringWithFormat:@"updateChatStatus('%@')", str];
+    
+    [self.wv evaluateJavaScript:script completionHandler:^(id _Nullable x, NSError * _Nullable error) {
+        
+    }];
+}
+
+- (NSString *)dictToStr: (NSDictionary *)dict {
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingPrettyPrinted error:nil];
+    NSString *msg = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    return msg;
+}
+
+- (void)requestToken {
+    NSString *urlString = @"https://gallery.creativ-space.com/apis/vragora/token";
+    
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:2];
+    [dict setValue:self.videoChannelName forKey:@"channelName"];
+    [dict setValue:self.uid forKey:@"uid"];
+    
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    
+    [manager POST:urlString parameters:dict headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSDictionary *dict = [NSDictionary dictionaryWithDictionary:responseObject];
+        
+        NSString *code = [NSString stringWithFormat:@"%@", dict[@"code"]];
+        if ([code isEqual: @"200"]) {
+            
+            NSString *data = [dict valueForKey:@"data"];
+            
+            self.agoraAudioToken = data;
+            
+            [self joinVideoChannelId:self.videoChannelName byUserId:self.uid];
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        
+    }];
+}
+
 
 @end

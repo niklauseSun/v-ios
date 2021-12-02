@@ -54,8 +54,9 @@
     NSMutableDictionary *dic = [NSMutableDictionary dictionary];
     [dic setObject:[self UAInfo] forKey:@"uaInfo"];
     [dic setObject:[self getScreenPixel] forKey:@"pixel"];
-    [dic setObject:[self getDeviceId] forKey:@"deviceId"];
-    [dic setObject:[self getNetWorkType] forKey:@"netWorkType"];
+//    [dic setObject:[self getDeviceId] forKey:@"deviceId"];
+//    [dic setObject:[self getNetWorkType] forKey:@"netWorkType"];
+    [dic setValue:@"iOS" forKey:@"type"];
     return dic;
 }
 

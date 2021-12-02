@@ -7,7 +7,9 @@
 
 #import "ViewController.h"
 #import "QHJSBaseWebLoader.h"
-#import "SGQRCode.h"
+#import "QCScan/WCQRCodeVC.h"
+#import <SGQRCode/SGAuthorization.h>
+#import "AFNetworking.h"
 
 @interface ViewController () 
 
@@ -19,21 +21,54 @@
 
 @property (nonatomic, strong) UIButton *jumpToTest;
 
-@property (nonatomic, strong) SGScanCode *scanCode;
-
 @end
 
 @implementation ViewController
+
+- (void)viewWillAppear:(BOOL)animated {
+    [self.navigationController setNavigationBarHidden:YES];
+    [self setStatusBarBackgroundColor:[UIColor redColor]];
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor whiteColor];
-    [self initViews];
+//    [self initViews];
     
     NSString *path = [self getJumpUrl];
     
     [self.urlAddress setText:path];
+    
+//    [self jumpToUrl:@"http://10.12.254.148:8080/"];
+    [self requestBaseUrl];
+}
+
+- (void)setStatusBarBackgroundColor:(UIColor *)color {
+    
+    if (@available(iOS 13.0, *)) {
+        static UIView *statusBar = nil;
+        if (!statusBar) {
+            static dispatch_once_t onceToken;
+            dispatch_once(&onceToken, ^{
+                statusBar = [[UIView alloc] initWithFrame:[UIApplication sharedApplication].keyWindow.windowScene.statusBarManager.statusBarFrame];
+                
+                statusBar.backgroundColor = color;
+                [[UIApplication sharedApplication].keyWindow addSubview:statusBar];
+            });
+        } else {
+            statusBar.backgroundColor = color;
+        }
+    } else {
+        UIView *statusBar = [[[UIApplication sharedApplication] valueForKey:@"statusBarWindow"] valueForKey:@"statusBar"];
+        if ([statusBar respondsToSelector:@selector(setBackgroundColor:)]) {
+            statusBar.backgroundColor = color;
+        }
+    }
+}
+
+- (BOOL)prefersStatusBarHidden {
+    return YES;
 }
 
 #pragma mark - action
@@ -44,6 +79,10 @@
     [self.view addSubview:self.urlAddress];
     [self.view addSubview:self.jumpToTest];
     [self.view addSubview:self.messageTestButton];
+}
+
+- (void)normalJump {
+    
 }
 
 #pragma mark - action
@@ -57,20 +96,59 @@
         NSMutableDictionary *paramDic = [NSMutableDictionary dictionaryWithCapacity:1];
         [paramDic setObject:url forKey:@"pageUrl"];
         vc.params = paramDic;
-        [self.navigationController pushViewController:vc animated:NO];
+        [self.navigationController pushViewController:vc animated:YES];
+    }
+}
+
+- (void)jumpToUrl:(NSString *)url {
+    if ([self isUrl:url]) {
+        [self saveJumpUrl:url];
+        QHJSBaseWebLoader *vc = [[QHJSBaseWebLoader alloc] init];
+        NSMutableDictionary *paramDic = [NSMutableDictionary dictionaryWithCapacity:1];
+        [paramDic setObject:url forKey:@"pageUrl"];
+        vc.params = paramDic;
+        
+        UINavigationController *root = [[UINavigationController alloc] initWithRootViewController:vc];
+        [root setNavigationBarHidden:YES animated:YES];
+        
+        [[UIApplication sharedApplication].keyWindow setRootViewController:root];
+        [[UIApplication sharedApplication].keyWindow makeKeyAndVisible];
+        
+//        [self.navigationController pushViewController:vc animated:YES];
+        
+//        [self.navigationController setViewControllers:@[vc] animated:YES];
     }
 }
 
 - (void)testAction {
-    self.scanCode = [SGScanCode scanCode];
+    SGAuthorization *authorization = [[SGAuthorization alloc] init];
+    authorization.openLog = YES;
     
-    __weak typeof(self) weakSelf = self;
-        
-        [self.scanCode scanWithController:self resultBlock:^(SGScanCode *scanCode, NSString *result) {
-            if (result) {
-                
-            }
-        }];
+    [authorization AVAuthorizationBlock:^(SGAuthorization * _Nonnull authorization, SGAuthorizationStatus status) {
+        if (status == SGAuthorizationStatusSuccess) {
+            WCQRCodeVC *WBVC = [[WCQRCodeVC alloc] init];
+            [self.navigationController pushViewController:WBVC animated:YES];
+        } else if (status == SGAuthorizationStatusFail) {
+            UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"温馨提示" message:@"请去-> [设置 - 隐私 - 相机 - SGQRCodeExample] 打开访问开关" preferredStyle:(UIAlertControllerStyleAlert)];
+            UIAlertAction *alertA = [UIAlertAction actionWithTitle:@"确定" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+                       }];
+                       
+            [alertC addAction:alertA];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self presentViewController:alertC animated:YES completion:nil];
+            });
+        } else {
+            UIAlertController *alertC = [UIAlertController alertControllerWithTitle:@"温馨提示" message:@"未检测到您的摄像头" preferredStyle:(UIAlertControllerStyleAlert)];
+            UIAlertAction *alertA = [UIAlertAction actionWithTitle:@"确定" style:(UIAlertActionStyleDefault) handler:^(UIAlertAction * _Nonnull action) {
+                           
+                       }];
+                       
+            [alertC addAction:alertA];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self presentViewController:alertC animated:YES completion:nil];
+            });
+        }
+    }];
     
 }
 
@@ -142,5 +220,31 @@
     return _callTestButton;
 }
 
+#pragma mark - request
+
+- (void)requestBaseUrl {
+    NSString *urlString = @"https://jiance.99rongle.com/prod-api/mate-component/config/get-h5-url";
+    
+    NSDictionary *dict = [NSDictionary dictionary];
+    
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    
+    [manager POST:urlString parameters:dict headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSDictionary *dict = [NSDictionary dictionaryWithDictionary:responseObject];
+        
+        NSString *code = [NSString stringWithFormat:@"%@", dict[@"code"]];
+        
+        if ([code isEqual: @"200"]) {
+            NSString *url = dict[@"data"];
+            if (url) {
+                [self jumpToUrl: url];
+            } else {
+                [self jumpToUrl:@"https://m.mspace.com.sg/mobile/"];
+            }
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        
+    }];
+}
 
 @end

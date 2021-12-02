@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1100"
+   LastUpgradeVersion = "1300"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "78F98528F78E9CC9F85CC2F7E8271AA2"
-               BuildableName = "Pods_VApp_ios.framework"
-               BlueprintName = "Pods-VApp-ios"
-               ReferencedContainer = "container:Pods.xcodeproj">
+               BlueprintIdentifier = "F435ED782697E75900C6675C"
+               BuildableName = "VApp-ios.app"
+               BlueprintName = "VApp-ios"
+               ReferencedContainer = "container:VApp-ios.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -40,6 +40,16 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "F435ED782697E75900C6675C"
+            BuildableName = "VApp-ios.app"
+            BlueprintName = "VApp-ios"
+            ReferencedContainer = "container:VApp-ios.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -47,6 +57,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "F435ED782697E75900C6675C"
+            BuildableName = "VApp-ios.app"
+            BlueprintName = "VApp-ios"
+            ReferencedContainer = "container:VApp-ios.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
