@@ -1,26 +1,41 @@
-# Mac OS X
-*.DS_Store
-
 # Xcode
-*.pbxuser
-*.mode1v3
-*.mode2v3
-*.perspectivev3
-*.xcuserstate
-project.xcworkspace/
-xcuserdata/
-
-# Generated files
-*.o
-*.pyc
-
-
-#Python modules
-MANIFEST
-dist/
+#
+# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
+# Mac OS X Finder and whatnot
+.DS_Store
+## Build generated
 build/
+DerivedData/
+## Various settings
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+## Other
+*.moved-aside
+*.xcuserstate
+*.xccheckout
+## Obj-C/Swift specific
+*.hmap
+*.ipa
+#*.dSYM.zip
+#*.dSYM
 
-# Backup files
-*~.nib
-
+#CocoaPods
 Pods/
+Pods
+.DS_Store
+Podfile.lock
+/.DS_Store
+Podfile.lock
+/Podfile.lock
+
+作者：Singularity_Lee
+链接：https://juejin.cn/post/6971334005094350855
+来源：稀土掘金
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。

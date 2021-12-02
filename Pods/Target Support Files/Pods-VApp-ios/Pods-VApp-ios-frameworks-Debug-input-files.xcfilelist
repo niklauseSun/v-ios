@@ -1,6 +1,14 @@
 ${PODS_ROOT}/Target Support Files/Pods-VApp-ios/Pods-VApp-ios-frameworks.sh
+${BUILT_PRODUCTS_DIR}/AFNetworking/AFNetworking.framework
+${PODS_ROOT}/AgoraAudio_iOS/AgoraAIDenoiseExtension.framework
+${PODS_ROOT}/AgoraAudio_iOS/AgoraCore.framework
+${PODS_ROOT}/AgoraAudio_iOS/AgoraRtcKit.framework
+${PODS_ROOT}/AgoraAudio_iOS/AgoraSoundTouch.framework
+${PODS_ROOT}/AgoraAudio_iOS/Agorafdkaac.framework
+${PODS_ROOT}/AgoraRtm_iOS/AgoraRtmKit.framework
 ${BUILT_PRODUCTS_DIR}/IQKeyboardManager/IQKeyboardManager.framework
-${BUILT_PRODUCTS_DIR}/QMUIKit/QMUIKit.framework
+${BUILT_PRODUCTS_DIR}/JSONKit/JSONKit.framework
 ${BUILT_PRODUCTS_DIR}/SGQRCode/SGQRCode.framework
 ${BUILT_PRODUCTS_DIR}/Shimmer/Shimmer.framework
+${BUILT_PRODUCTS_DIR}/TZImagePickerController/TZImagePickerController.framework
 ${BUILT_PRODUCTS_DIR}/WSProgressHUD/WSProgressHUD.framework
