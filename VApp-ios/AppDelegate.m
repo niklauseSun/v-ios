@@ -6,7 +6,7 @@
 //
 
 #import "AppDelegate.h"
-#import "ViewController.h"
+#import "QHJSBaseWebLoader.h"
 
 
 @interface AppDelegate ()
@@ -21,7 +21,7 @@
     
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
        
-    ViewController *rootVc = [[ViewController alloc]init];
+    QHJSBaseWebLoader *rootVc = [[QHJSBaseWebLoader alloc]init];
     UINavigationController *rootNav = [[UINavigationController alloc]initWithRootViewController:rootVc];
     [rootNav setNavigationBarHidden:YES];
     [self.window setRootViewController:rootNav];

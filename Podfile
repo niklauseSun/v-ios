@@ -29,4 +29,6 @@ target 'VApp-ios' do
   
   # 图片选择库
   pod 'TZImagePickerController' #iOS8 and later
+  # 图片库
+  pod 'SDWebImage'
 end

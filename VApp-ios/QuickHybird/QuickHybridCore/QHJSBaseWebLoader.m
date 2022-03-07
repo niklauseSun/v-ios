@@ -12,6 +12,7 @@
 #import <AgoraRtcKit/AgoraRtcEngineKit.h>
 #import "JSONKit.h"
 #import "AFNetworking.h"
+#import <SDWebImage/SDWebImage.h>
 
 #define ssRGBHex(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
@@ -38,6 +39,15 @@ static NSString *KVOContext;
 @property (nonatomic, strong) UIBarButtonItem *leftBarButtonItem;
 
 
+@property (nonatomic, strong) UIImageView *splashImageView;
+
+@property (nonatomic, strong) UIButton *closeButton;
+
+@property (nonatomic, weak) NSTimer *timer;
+
+@property int count;
+
+
 // 声网代码
 
 @property (nonatomic, strong) AgoraRtmKit *kit;
@@ -59,6 +69,24 @@ static NSString *KVOContext;
 @property NSString *videoChannelName;
 
 @property NSString* text;
+
+/**
+ 声网客户声明
+ */
+
+@property NSString* bussinessHeadImage;
+@property NSString* bussinessIdentity;
+@property NSString* bussinessNickname;
+@property NSString* bussinessUid;
+@property NSString* bussinessAccid;
+
+@property NSString* modleUrl;
+
+@property NSString* customerHeadImage;
+@property NSString* customerIdentity;
+@property NSString* customerNickname;
+@property NSString* customerUid;
+@property NSString* customerAccid;
 
 @end
 
@@ -109,8 +137,14 @@ static NSString *KVOContext;
     // 初始化
     self.view.backgroundColor = [UIColor whiteColor];
     
+    
+    
     // 创建WKWebView
     [self createWKWebView];
+    
+    [self.view addSubview:self.splashImageView];
+    [self.view addSubview:self.closeButton];
+    self.count = 5;
     
 //    self.navigationController.navigationBar.barTintColor = [UIColor greenColor];
     
@@ -122,13 +156,22 @@ static NSString *KVOContext;
     [self.bridge registerFrameAPI];
     
     // 加载H5页面
-    [self loadHTML];
+//    [self loadHTML];
     
     self.appID = @""; // appId;
     self.agoraAudioAppId = @"511767b5f6974accbae15e9022518589";
     self.agoraAudioToken = @"0063dc9b22d18a8405ea10efc0fcc2054d7IADnBF5ZR63DTgvhR0S+tKqlRJqJH9LmVbFp4Qf+T8x0pz37XygAAAAAEABgsZT+f7o+YQEAAQB+uj5h";
 
     self.kit = [[AgoraRtmKit alloc] initWithAppId:self.appID delegate:self];
+    
+    [self requestBaseUrl];
+    [self performSelector:@selector(delayJump) withObject:nil afterDelay:5.0];
+
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0
+                                                     target:self
+                                                   selector:@selector(updateTimer)
+                                                   userInfo:nil
+                                                    repeats:YES];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -164,6 +207,21 @@ static NSString *KVOContext;
         }
     }
 }
+
+- (void)updateTimer {
+    self.count = self.count - 1;
+    
+    NSString *label = [NSString stringWithFormat:@"%ds", self.count];
+    
+    [self.closeButton setTitle:label forState:UIControlStateNormal];
+}
+
+- (void)delayJump {
+    [self.splashImageView setHidden:YES];
+    [self.closeButton setHidden:YES];
+    [self.timer invalidate];
+}
+
 #pragma mark --- 语音初始化
 - (void)initializeAgoraEngine {
     // 初始化 AgoraRtcEngineKit 对象
@@ -417,6 +475,7 @@ static NSString *KVOContext;
 
 - (void)addScripts:(WKUserContentController *)userConfig {
     [userConfig addScriptMessageHandler:self name:@"sendVRCard"];
+    [userConfig addScriptMessageHandler:self name:@"sendUserInfo"];
     [userConfig addScriptMessageHandler:self name:@"getUserInfo"];
     [userConfig addScriptMessageHandler:self name:@"call"];
     [userConfig addScriptMessageHandler:self name:@"hangup"];
@@ -436,6 +495,28 @@ static NSString *KVOContext;
  */
 - (void)loadHTML {
     NSString *url = [[self.params valueForKey:@"pageUrl"] stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
+    if ([url hasPrefix:@"http"]) {
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
+        [self.wv loadRequest:request];
+    } else {
+        // 加载本地页面，iOS 8不支持
+        if (@available(iOS 9.0, *)) {
+            //本地路径的html页面路径
+            NSURL *pathUrl = [NSURL URLWithString:url];
+            NSURL *bundleUrl = [[NSBundle mainBundle] bundleURL];
+            [self.wv loadFileURL:pathUrl allowingReadAccessToURL:bundleUrl];
+        } else {
+            UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"发生错误" message:@"本地页面的方式不支持iOS9以下" preferredStyle:(UIAlertControllerStyleAlert)];
+            UIAlertAction *action = [UIAlertAction actionWithTitle:@"确认" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                
+            }];
+            [alertController addAction:action];
+            [self presentViewController:alertController animated:YES completion:nil];
+        }
+    }
+}
+
+- (void)loadHtml:(NSString *) url {
     if ([url hasPrefix:@"http"]) {
         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
         [self.wv loadRequest:request];
@@ -817,6 +898,7 @@ static NSString *KVOContext;
 }
 
 #pragma mark - WKScriptMessageHandler
+
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
     if ([message.name isEqualToString:@"sendVRCard"]) {
     //这个是传过来的参数
@@ -830,6 +912,30 @@ static NSString *KVOContext;
     if ([message.name isEqualToString:@"getUserInfo"]) {
         //这个是传过来的参数
         NSLog(@"%@",message.body);
+        
+        if ([message.body isKindOfClass:[NSString class]]) {
+            NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] initWithCapacity:6];
+            
+            NSMutableDictionary *customer = [[NSMutableDictionary alloc] initWithCapacity:6];
+            [customer setValue:self.customerHeadImage forKey:@"customerHeadImage"];
+            [customer setValue:self.customerIdentity forKey:@"customerIdentity"];
+            [customer setValue:self.customerNickname forKey:@"customerNickname"];
+            [customer setValue:self.customerUid forKey:@"customerUid"];
+            [customer setValue:self.customerAccid forKey:@"customerAccid"];
+            
+            NSMutableDictionary *business = [[NSMutableDictionary alloc] initWithCapacity:6];
+            [business setValue:self.bussinessHeadImage forKey:@"bussinessHeadImage"];
+            [business setValue:self.bussinessIdentity forKey:@"bussinessIdentity"];
+            [business setValue:self.bussinessNickname forKey:@"bussinessNickname"];
+            [business setValue:self.bussinessUid forKey:@"bussinessUid"];
+            [business setValue:self.bussinessAccid forKey:@"bussinessAccid"];
+            
+            [userInfo setValue:customer forKey:@"customer"];
+            [userInfo setValue:@(4) forKey:@"currentIdentity"];
+            [userInfo setValue:business forKey:@"bussiness"];
+            
+            [self resUserInfo: [self dictToStr:userInfo]];
+        }
     }
     
     if ([message.name isEqualToString:@"call"]) {
@@ -1024,8 +1130,37 @@ static NSString *KVOContext;
         if ([message.body isKindOfClass:[NSString class]]) {
             
         }
-        
         [self sendPeerMessage:message.body toPeerId:self.peerID];
+    }
+    
+    if ([message.name isEqualToString:@"sendUserInfo"]) {
+        if ([message.body isKindOfClass:[NSString class]]) {
+            NSDictionary *resultDict = [self parseJSON: message.body];
+            
+            if ([resultDict valueForKey:@"bussiness"]) {
+                NSDictionary *buisiness = [resultDict valueForKey:@"bussiness"];
+                
+                self.bussinessHeadImage = [buisiness valueForKey:@"bussinessHeadImage"];
+                self.bussinessIdentity = [buisiness valueForKey:@"bussinessIdentity"];
+                self.bussinessNickname = [buisiness valueForKey:@"bussinessNickname"];
+                self.bussinessUid = [buisiness valueForKey:@"bussinessUid"];
+                self.bussinessAccid = [buisiness valueForKey:@"bussinessAccid"];
+            }
+            
+            if ([resultDict valueForKey:@"modleUrl"]) {
+                self.modleUrl = [resultDict valueForKey:@"modleUrl"];
+            }
+            
+            if ([resultDict valueForKey:@"customer"]) {
+                NSDictionary *customer = [resultDict valueForKey:@"customer"];
+                
+                self.customerHeadImage = [customer valueForKey:@"customerHeadImage"];
+                self.customerIdentity = [customer valueForKey:@"customerIdentity"];
+                self.customerNickname = [customer valueForKey:@"customerNickname"];
+                self.customerUid = [customer valueForKey:@"customerUid"];
+                self.customerAccid = [customer valueForKey:@"customerAccid"];
+            }
+        }
     }
 }
 
@@ -1076,6 +1211,14 @@ static NSString *KVOContext;
     }];
 }
 
+- (void)resUserInfo:(NSString *)str {
+    NSString *script = [NSString stringWithFormat:@"getUserInfo('%@')", str];
+    
+    [self.wv evaluateJavaScript:script completionHandler:^(id _Nullable x, NSError * _Nullable error) {
+        
+    }];
+}
+
 - (NSString *)dictToStr: (NSDictionary *)dict {
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingPrettyPrinted error:nil];
     NSString *msg = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
@@ -1108,5 +1251,68 @@ static NSString *KVOContext;
     }];
 }
 
+- (void)requestBaseUrl {
+    NSString *urlString = @"https://console.mspaco.com.sg/prod-api/mate-system/dict/list-value?code=appconf";
+    
+    NSDictionary *dict = [NSDictionary dictionary];
+    
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    
+    [manager GET:urlString parameters:dict headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSDictionary *dict = [NSDictionary dictionaryWithDictionary:responseObject];
+        
+        NSString *code = [NSString stringWithFormat:@"%@", dict[@"code"]];
+        
+        if ([code isEqual: @"200"]) {
+            NSArray *resArray = dict[@"data"];
+            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+            
+            for (NSDictionary *obj in resArray) {
+                if ([[obj valueForKey:@"dictKey"] isEqualToString:@"pic"]) {
+                    NSString *guideUrl = [obj valueForKey:@"dictValue"];
+                    [defaults setObject: guideUrl forKey:@"guideImage"];
+                    [defaults synchronize];//立即保存
+                } else if ([[obj valueForKey:@"dictKey"] isEqualToString:@"home"]) {
+                    NSString *jumpUrl = [obj valueForKey:@"dictValue"];
+                    [defaults setObject: jumpUrl forKey:@"home"];
+                    [defaults synchronize];//立即保存
+                    [self loadHtml:jumpUrl];
+                }
+            }
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        
+    }];
+}
+
+- (UIImageView *)splashImageView {
+    if (!_splashImageView) {
+        _splashImageView = [[UIImageView alloc] init];
+        [_splashImageView setFrame:self.view.frame];
+        NSUserDefaults *de = [NSUserDefaults standardUserDefaults];
+        NSString *urlStr = [de objectForKey:@"guideImage"];
+        UIImage *spImage = [UIImage imageNamed:@"launch"];
+        _splashImageView.contentMode = UIViewContentModeScaleAspectFill;
+        if (urlStr) {
+            [_splashImageView sd_setImageWithURL:[NSURL URLWithString:urlStr] placeholderImage:spImage];
+        } else {
+            [_splashImageView setImage:spImage];
+        }
+    }
+    
+    return _splashImageView;
+}
+
+- (UIButton *)closeButton {
+    if (!_closeButton) {
+        _closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_closeButton setTitle:@"5s" forState:UIControlStateNormal];
+        [_closeButton setFrame:CGRectMake(290, 50, 90, 32)];
+        [_closeButton setTitleColor:[UIColor colorWithRed:231 green:230 blue:230 alpha:1] forState:UIControlStateNormal];
+        [_closeButton addTarget:self action:@selector(delayJump) forControlEvents:UIControlEventTouchUpInside];
+    }
+    
+    return _closeButton;
+}
 
 @end

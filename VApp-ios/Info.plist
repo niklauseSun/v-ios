@@ -25,6 +25,8 @@
 	<key>NSCameraUsageDescription</key>
 	<string>请求相机权限以进行二维码扫描登录扫描</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>使用时获取地址信息以更新配送地址</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>使用时获取地址信息以配置配送地址</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>请求相册权限以对本地二维码进行扫描进行登录</string>

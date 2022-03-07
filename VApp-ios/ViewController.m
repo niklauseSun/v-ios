@@ -9,6 +9,7 @@
 #import "QHJSBaseWebLoader.h"
 #import "QCScan/WCQRCodeVC.h"
 #import <SGQRCode/SGAuthorization.h>
+#import <SDWebImage/SDWebImage.h>
 #import "AFNetworking.h"
 
 @interface ViewController () 
@@ -20,6 +21,16 @@
 @property (nonatomic, strong) UITextField  *urlAddress;
 
 @property (nonatomic, strong) UIButton *jumpToTest;
+
+@property (nonatomic, strong) UIImageView *splashImageView;
+
+@property (nonatomic, strong) UIButton *jumpButton;
+
+@property (nonatomic, strong) UIButton *closeButton;
+
+@property (nonatomic, weak) NSTimer *timer;
+
+@property int count;
 
 @end
 
@@ -34,14 +45,36 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor whiteColor];
-//    [self initViews];
-    
+    [self.view addSubview:self.splashImageView];
+    [self.view addSubview:self.closeButton];
+    self.count = 5;
+    // 测试
     NSString *path = [self getJumpUrl];
     
     [self.urlAddress setText:path];
-    
-//    [self jumpToUrl:@"http://10.12.254.148:8080/"];
     [self requestBaseUrl];
+    [self performSelector:@selector(delayJump) withObject:nil afterDelay:5.0];
+
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:1.0
+                                                     target:self
+                                                   selector:@selector(updateTimer)
+                                                   userInfo:nil
+                                                    repeats:YES];
+}
+
+- (void)updateTimer {
+    self.count = self.count - 1;
+    
+    NSString *label = [NSString stringWithFormat:@"%ds", self.count];
+    
+    [self.closeButton setTitle:label forState:UIControlStateNormal];
+}
+
+- (void)delayJump {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSString *homeUrl = [defaults objectForKey:@"home"];
+    
+    [self jumpToUrl:homeUrl];
 }
 
 - (void)setStatusBarBackgroundColor:(UIColor *)color {
@@ -85,6 +118,13 @@
     
 }
 
+- (void)jumpInstant {
+    [self delayJump];
+    // 跳转之后立马移除循环定时器
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(delayJump) object:nil];
+    [self.timer invalidate];
+}
+
 #pragma mark - action
 
 - (void)jumpToWebView {
@@ -113,10 +153,6 @@
         
         [[UIApplication sharedApplication].keyWindow setRootViewController:root];
         [[UIApplication sharedApplication].keyWindow makeKeyAndVisible];
-        
-//        [self.navigationController pushViewController:vc animated:YES];
-        
-//        [self.navigationController setViewControllers:@[vc] animated:YES];
     }
 }
 
@@ -220,26 +256,64 @@
     return _callTestButton;
 }
 
+- (UIImageView *)splashImageView {
+    if (!_splashImageView) {
+        _splashImageView = [[UIImageView alloc] init];
+        [_splashImageView setFrame:self.view.frame];
+        NSUserDefaults *de = [NSUserDefaults standardUserDefaults];
+        NSString *urlStr = [de objectForKey:@"guideImage"];
+        UIImage *spImage = [UIImage imageNamed:@"launch"];
+        if (urlStr) {
+            [_splashImageView sd_setImageWithURL:[NSURL URLWithString:urlStr] placeholderImage:spImage];
+        } else {
+            [_splashImageView setImage:spImage];
+        }
+    }
+    
+    return _splashImageView;
+}
+
+- (UIButton *)closeButton {
+    if (!_closeButton) {
+        _closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_closeButton setTitle:@"5s" forState:UIControlStateNormal];
+        [_closeButton setFrame:CGRectMake(270, 60, 90, 32)];
+        [_closeButton setTitleColor:[UIColor colorWithRed:239 green:239 blue:239 alpha:0.8] forState:UIControlStateNormal];
+        [_closeButton setBackgroundColor:[UIColor lightGrayColor]];
+        [_closeButton addTarget:self action:@selector(jumpInstant) forControlEvents:UIControlEventTouchUpInside];
+    }
+    
+    return _closeButton;
+}
+
 #pragma mark - request
 
 - (void)requestBaseUrl {
-    NSString *urlString = @"https://jiance.99rongle.com/prod-api/mate-component/config/get-h5-url";
+    NSString *urlString = @"https://console.mspaco.com.sg/prod-api/mate-system/dict/list-value?code=appconf";
     
     NSDictionary *dict = [NSDictionary dictionary];
     
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
     
-    [manager POST:urlString parameters:dict headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    [manager GET:urlString parameters:dict headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *dict = [NSDictionary dictionaryWithDictionary:responseObject];
         
         NSString *code = [NSString stringWithFormat:@"%@", dict[@"code"]];
         
         if ([code isEqual: @"200"]) {
-            NSString *url = dict[@"data"];
-            if (url) {
-                [self jumpToUrl: url];
-            } else {
-                [self jumpToUrl:@"https://m.mspace.com.sg/mobile/"];
+            NSArray *resArray = dict[@"data"];
+            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+            
+            for (NSDictionary *obj in resArray) {
+                if ([[obj valueForKey:@"dictKey"] isEqualToString:@"pic"]) {
+                    NSString *guideUrl = [obj valueForKey:@"dictValue"];
+                    [defaults setObject: guideUrl forKey:@"guideImage"];
+                    [defaults synchronize];//立即保存
+                } else if ([[obj valueForKey:@"dictKey"] isEqualToString:@"home"]) {
+                    NSString *jumpUrl = [obj valueForKey:@"dictValue"];
+                    [defaults setObject: jumpUrl forKey:@"home"];
+                    [defaults synchronize];//立即保存
+                }
             }
         }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
