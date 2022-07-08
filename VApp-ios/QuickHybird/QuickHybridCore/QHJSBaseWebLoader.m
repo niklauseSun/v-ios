@@ -88,6 +88,8 @@ static NSString *KVOContext;
 @property NSString* customerUid;
 @property NSString* customerAccid;
 
+@property NSString* businessType;
+
 @end
 
 @implementation QHJSBaseWebLoader
@@ -359,13 +361,13 @@ static NSString *KVOContext;
 #pragma mark --- 声网云信令监听
 - (void)channel:(AgoraRtmChannel *)channel memberLeft:(AgoraRtmMember *)member {
     self.text = [NSString stringWithFormat:@"%@ left channel %@", member.channelId, member.userId];
-    NSLog(@"%@", self.text);
+    NSLog(@"member left %@", self.text);
 }
 
 - (void)channel:(AgoraRtmChannel *)channel memberJoined:(AgoraRtmMember *)member
 {
     self.text = [NSString stringWithFormat:@"%@ joined channel %@", member.channelId, member.userId];
-    NSLog(@"%@", self.text);
+    NSLog(@"member joined %@", self.text);
 }
 
 // 从群组中收到信息
@@ -383,31 +385,41 @@ static NSString *KVOContext;
         
         NSDictionary *data = [receiveData valueForKey:@"data"];
         
-        if (data) {
-            NSString *state = [data valueForKey:@"state"];
+        if (data && [[data valueForKey:@"state"] isEqualToString:@"initdone"]) {
+            NSLog(@"receive message --- initdone");
             
-            if ([state isEqualToString:@"initdone"]) {
-                
-                if (![self.peerID isEqual:@""] && ![self.peerID isEqualToString:peerId]) {
-                    [self onData:message.text];
+            if (![self.peerID isEqual:@""] && ![self.peerID isEqualToString:peerId]) {
+                if (![self.businessType isEqualToString:@"bussiness"]) {
                     [self onChatUpdate:@"3"];
                 }
-                
+                [self onData:message.text];
             }
         } else if ([receiveData valueForKey:@"type"]) {
             NSString *type = [receiveData valueForKey:@"type"];
             
-            if ([type isEqualToString:@"app-hangup"]) {
-                
-                if ([receiveData valueForKey:@"hangupType"] && [[receiveData valueForKey:@"hangupType"] isEqualToString:@"7"]) {
+            if ([type isEqualToString:@"mini-hangup"]) {
+                [self onChatUpdate:@"8"];
+            } else if ([type isEqualToString:@"app-hangup"]) {
+                if ([[receiveData valueForKey:@"hangupType"] isEqualToString:@"7"]) {
                     [self onChatUpdate:@"7"];
                 } else {
-                    // android是这样做的照抄
-                    [self onChatUpdate:@"3"];
                     [self onChatUpdate:@"5"];
                 }
+            } else if ([type isEqualToString:@"app-call"]) {
                 
             }
+            
+//            if ([type isEqualToString:@"app-hangup"]) {
+//
+//                if ([receiveData valueForKey:@"hangupType"] && [[receiveData valueForKey:@"hangupType"] isEqualToString:@"7"]) {
+//                    [self onChatUpdate:@"7"];
+//                } else {
+//                    // android是这样做的照抄
+//                    [self onChatUpdate:@"3"];
+//                    [self onChatUpdate:@"5"];
+//                }
+//
+//            }
         }
         
         
@@ -919,7 +931,7 @@ static NSString *KVOContext;
             NSMutableDictionary *customer = [[NSMutableDictionary alloc] initWithCapacity:6];
             [customer setValue:self.customerHeadImage forKey:@"customerHeadImage"];
             [customer setValue:self.customerIdentity forKey:@"customerIdentity"];
-            [customer setValue:self.customerNickname forKey:@"customerNickname"];
+            [customer setValue:self.customerNickname forKey:@"customerNickName"];
             [customer setValue:self.customerUid forKey:@"customerUid"];
             [customer setValue:self.customerAccid forKey:@"customerAccid"];
             
@@ -931,7 +943,11 @@ static NSString *KVOContext;
             [business setValue:self.bussinessAccid forKey:@"bussinessAccid"];
             
             [userInfo setValue:customer forKey:@"customer"];
-            [userInfo setValue:@(4) forKey:@"currentIdentity"];
+            if ([self.businessType isEqualToString:@"bussiness"]) {
+                [userInfo setValue:self.bussinessIdentity forKey:@"currentIdentity"];
+            } else {
+                [userInfo setValue:self.customerIdentity forKey:@"currentIdentity"];
+            }
             [userInfo setValue:business forKey:@"bussiness"];
             
             [self resUserInfo: [self dictToStr:userInfo]];
@@ -941,67 +957,77 @@ static NSString *KVOContext;
     if ([message.name isEqualToString:@"call"]) {
         //这个是传过来的参数
         NSLog(@"%@",message.body);
-        if ([message.body isKindOfClass:[NSString class]]) {
-            NSDictionary *resultData = [self parseJSON:message.body];
-            
-            NSString *roomId = [resultData valueForKey:@"roomid"];
-            NSString *houseId = [resultData valueForKey:@"houseid"];
-            NSString *houseUrl = [resultData valueForKey:@"houseurl"];
-            NSString *channelName = [resultData valueForKey:@"channelName"];
-            
-            NSString *peerId = [resultData valueForKey:@"peerId"];
-            self.peerID = peerId;
-            
-            NSMutableDictionary *callDict = [[NSMutableDictionary alloc] initWithCapacity:6];
-            
-            [callDict setValue:roomId forKey:@"roomid"];
-            [callDict setValue:houseId forKey:@"houseid"];
-            [callDict setValue:houseUrl forKey:@"houseurl"];
-            if (!channelName) {
-                [callDict setValue:self.videoChannelName forKey:@"channelName"];
-            } else {
-                [callDict setValue:channelName forKey:channelName];
-            }
-            [callDict setValue:@"app-call" forKey:@"type"];
-            
-            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:callDict options:NSJSONWritingPrettyPrinted error:nil];
-            
-            NSString *msg = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-
-            [self sendPeerMessage:msg toPeerId:peerId];
-        }
+        
+        NSMutableDictionary *callDict = [[NSMutableDictionary alloc] initWithCapacity:6];
+        [callDict setValue:@"app-call" forKey: @"type"];
+        [callDict setValue:self.uid forKey: @"roomid"];
+        [callDict setValue:self.modleUrl forKey:@"houseurl"];
+        [callDict setValue:@"" forKey:@"houseid"];
+        [callDict setValue:self.uid forKey:@"channelName"];
+        
+        [callDict setValue:self.bussinessHeadImage forKey:@"bussinessHeadImage"];
+        [callDict setValue:self.bussinessIdentity forKey:@"bussinessIdentity"];
+        [callDict setValue:self.bussinessNickname forKey:@"bussinessNickname"];
+        [callDict setValue:self.bussinessUid forKey:@"bussinessUid"];
+        [callDict setValue:self.bussinessAccid forKey:@"bussinessAccid"];
+        
+        [callDict setValue:self.customerHeadImage forKey:@"customerHeadImage"];
+        [callDict setValue:self.customerIdentity forKey:@"customerIdentity"];
+        [callDict setValue:self.customerNickname forKey:@"customerNickName"];
+        [callDict setValue:self.customerUid forKey:@"customerUid"];
+        [callDict setValue:self.customerAccid forKey:@"customerAccid"];
+    
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:callDict options:NSJSONWritingPrettyPrinted error:nil];
+        NSString *msg = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        
+        [self sendPeerMessage:msg toPeerId:self.peerID];
+        
+//        if ([message.body isKindOfClass:[NSString class]]) {
+//            NSDictionary *resultData = [self parseJSON:message.body];
+//
+//            NSString *roomId = [resultData valueForKey:@"roomid"];
+//            NSString *houseId = [resultData valueForKey:@"houseid"];
+//            NSString *houseUrl = [resultData valueForKey:@"houseurl"];
+//            NSString *channelName = [resultData valueForKey:@"channelName"];
+//
+//            NSString *peerId = [resultData valueForKey:@"peerId"];
+//            self.peerID = peerId;
+//
+//            NSMutableDictionary *callDict = [[NSMutableDictionary alloc] initWithCapacity:6];
+//
+//            [callDict setValue:roomId forKey:@"roomid"];
+//            [callDict setValue:houseId forKey:@"houseid"];
+//            [callDict setValue:houseUrl forKey:@"houseurl"];
+//            if (!channelName) {
+//                [callDict setValue:self.videoChannelName forKey:@"channelName"];
+//            } else {
+//                [callDict setValue:channelName forKey:channelName];
+//            }
+//            [callDict setValue:@"app-call" forKey:@"type"];
+//
+//            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:callDict options:NSJSONWritingPrettyPrinted error:nil];
+//
+//            NSString *msg = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+//
+//            [self sendPeerMessage:msg toPeerId:peerId];
+//        }
         
     }
     
     if ([message.name isEqualToString:@"hangup"]) {
         //这个是传过来的参数
-        NSLog(@"%@",message.body);
+        NSLog(@"hangup %@",message.body);
         
-        if ([message.body isKindOfClass:[NSString class]]) {
-            NSDictionary *resultDict = [self parseJSON: message.body];
-            NSString *peerId = [resultDict valueForKey:@"peerId"];
-            
-            if (!peerId) {
-                peerId = self.peerID;
-            }
-            
-            [self leavelAudioChannel];
-            
-            NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:2];
-            [dict setValue:@(8) forKey:@"status"];
-            
-            NSString *msg = [self dictToStr: dict];
-            
-            [self onChatUpdate:msg];
-            
-            NSMutableDictionary *hangUpDict = [[NSMutableDictionary alloc] initWithCapacity:3];
-            [hangUpDict setValue:@"mini-hangup" forKey:@"type"];
-            [hangUpDict setValue:@(8) forKey:@"hangupType"];
-            [hangUpDict setValue:@(8) forKey:@"status"];
-            
-            NSString *hangUpMsg = [self dictToStr:hangUpDict];
-            [self sendPeerMessage:hangUpMsg toPeerId:peerId];
-        }
+        [self leaveChannel:@""];
+        
+        [self onChatUpdate: @"8"];
+        
+        NSMutableDictionary *hangUpDict = [[NSMutableDictionary alloc] initWithCapacity:3];
+        [hangUpDict setValue:@"mini-hangup" forKey:@"type"];
+        [hangUpDict setValue:@(8) forKey:@"hangupType"];
+        
+        NSString *hangUpMsg = [self dictToStr:hangUpDict];
+        [self sendPeerMessage:hangUpMsg toPeerId: self.peerID];
     }
     
     if ([message.name isEqualToString:@"refuse"]) {
@@ -1027,40 +1053,14 @@ static NSString *KVOContext;
     
     if ([message.name isEqualToString:@"accept"]) {
         // 接受消息
-        NSLog(@"%@",message.body);
+        NSLog(@"accept --- %@",message.body);
         
-        if ([message.body isKindOfClass:[NSString class]]) {
-            NSDictionary *resultDict = [self parseJSON:message.body];
-            
-            NSString *roomId = [resultDict valueForKey:@"roomid"];
-            NSString *houseId = [resultDict valueForKey:@"houseid"];
-            NSString *houseUrl = [resultDict valueForKey:@"houseurl"];
-            NSString *channelName = [resultDict valueForKey:@"channelName"];
-            NSString *peerId = [resultDict valueForKey:@"peerId"];
-            
-            if (!peerId) {
-                NSLog(@"no peerid");
-                return;;
-            }
-            self.peerID = peerId;
-            NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:7];
-            
-            [dict setValue:roomId forKey:@"roomid"];
-            [dict setValue:houseId forKey:@"houseid"];
-            [dict setValue:houseUrl forKey:@"houseurl"];
-            [dict setValue:channelName forKey:@"channelName"];
-            [dict setValue:peerId forKey:@"peerId"];
-            [dict setValue:@"accept" forKey:@"type"];
-            [dict setValue:@(3) forKey:@"status"];
-            
-            NSString *msg = [self dictToStr:dict];
-            [self sendPeerMessage:msg toPeerId:peerId];
-        }
+        [self onChatUpdate:@"3"];
     }
     
     if ([message.name isEqualToString:@"getLog"]) {
         //这个是传过来的参数
-        NSLog(@"%@",message.body);
+        NSLog(@"getLog %@",message.body);
     }
     
     if ([message.name isEqualToString:@"mute"]) {
@@ -1137,14 +1137,39 @@ static NSString *KVOContext;
         if ([message.body isKindOfClass:[NSString class]]) {
             NSDictionary *resultDict = [self parseJSON: message.body];
             
+            if ([resultDict valueForKey:@"type"]) {
+                self.businessType = [resultDict valueForKey:@"type"];
+            }
+            
+            
             if ([resultDict valueForKey:@"bussiness"]) {
                 NSDictionary *buisiness = [resultDict valueForKey:@"bussiness"];
                 
-                self.bussinessHeadImage = [buisiness valueForKey:@"bussinessHeadImage"];
-                self.bussinessIdentity = [buisiness valueForKey:@"bussinessIdentity"];
-                self.bussinessNickname = [buisiness valueForKey:@"bussinessNickname"];
-                self.bussinessUid = [buisiness valueForKey:@"bussinessUid"];
-                self.bussinessAccid = [buisiness valueForKey:@"bussinessAccid"];
+                if (![[buisiness valueForKey:@"bussinessHeadImage"] isEmpty]) {
+                    self.bussinessHeadImage = [buisiness valueForKey:@"bussinessHeadImage"];
+                }
+                if (![[buisiness valueForKey:@"bussinessIdentity"] isEmpty]) {
+                    self.bussinessIdentity = [buisiness valueForKey:@"bussinessIdentity"];
+                }
+                if (![[buisiness valueForKey:@"bussinessNickname"] isEmpty]) {
+                    self.bussinessNickname = [buisiness valueForKey:@"bussinessNickname"];
+                }
+                if (![[buisiness valueForKey:@"bussinessUid"] isEmpty]) {
+                    self.bussinessUid = [buisiness valueForKey:@"bussinessUid"];
+                }
+                if (![[buisiness valueForKey:@"bussinessAccid"] isEmpty]) {
+                    self.bussinessAccid = [buisiness valueForKey:@"bussinessAccid"];
+                }
+                
+                if ([self.businessType isEqualToString:@"bussiness"]) {
+                    if (self.bussinessUid) {
+                        self.uid = self.bussinessUid;
+                    }
+                } else {
+                    if (self.bussinessUid) {
+                        self.peerID = self.bussinessUid;
+                    }
+                }
             }
             
             if ([resultDict valueForKey:@"modleUrl"]) {
@@ -1154,11 +1179,35 @@ static NSString *KVOContext;
             if ([resultDict valueForKey:@"customer"]) {
                 NSDictionary *customer = [resultDict valueForKey:@"customer"];
                 
-                self.customerHeadImage = [customer valueForKey:@"customerHeadImage"];
-                self.customerIdentity = [customer valueForKey:@"customerIdentity"];
-                self.customerNickname = [customer valueForKey:@"customerNickname"];
-                self.customerUid = [customer valueForKey:@"customerUid"];
-                self.customerAccid = [customer valueForKey:@"customerAccid"];
+                if (![[customer valueForKey:@"customerHeadImage"] isEmpty]) {
+                    self.customerHeadImage = [customer valueForKey:@"customerHeadImage"];
+                }
+                
+                if (![[customer valueForKey:@"customerIdentity"] isEmpty]) {
+                    self.customerIdentity = [customer valueForKey:@"customerIdentity"];
+                }
+                
+                if (![[customer valueForKey:@"customerNickname"] isEmpty]) {
+                    self.customerNickname = [customer valueForKey:@"customerNickName"];
+                }
+                
+                if (![[customer valueForKey:@"customerUid"] isEqual:@"0"]) {
+                    self.customerUid = [customer valueForKey:@"customerUid"];
+                }
+                
+                if (![[customer valueForKey:@"customerAccid"] isEmpty]) {
+                    self.customerAccid = [customer valueForKey:@"customerAccid"];
+                }
+                
+                if (![self.businessType isEqualToString:@"bussiness"]) {
+                    if (self.customerUid) {
+                        self.uid = self.customerUid;
+                    }
+                } else {
+                    if (self.customerUid) {
+                        self.peerID = self.customerUid;
+                    }
+                }
             }
         }
     }
@@ -1223,6 +1272,30 @@ static NSString *KVOContext;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingPrettyPrinted error:nil];
     NSString *msg = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     return msg;
+}
+
+- (void)joinChannelWithId: (NSString *)fromId andChanneName:(NSString *)channelName {
+    NSString *urlString = @"https://gallery.creativ-space.com/apis/vragora/token";
+    
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:2];
+    [dict setValue:channelName forKey:@"channelName"];
+    [dict setValue:fromId forKey:@"uid"];
+    [dict setValue:@(1) forKey:@"role"];
+    
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    
+    [manager POST:urlString parameters:dict headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSDictionary *dict = [NSDictionary dictionaryWithDictionary:responseObject];
+        
+        NSString *code = [NSString stringWithFormat:@"%@", dict[@"code"]];
+        if ([code isEqual: @"200"]) {
+            
+            NSString *data = [dict valueForKey:@"data"];
+            // TODO 加入频道的代码
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        
+    }];
 }
 
 - (void)requestToken {

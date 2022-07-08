@@ -18,6 +18,9 @@ PODS:
   - AgoraRtm_iOS (1.4.8)
   - IQKeyboardManager (6.5.6)
   - JSONKit (1.4)
+  - SDWebImage (5.12.2):
+    - SDWebImage/Core (= 5.12.2)
+  - SDWebImage/Core (5.12.2)
   - SGQRCode (3.5.1)
   - Shimmer (1.0.2)
   - TZImagePickerController (3.6.6)
@@ -30,6 +33,7 @@ DEPENDENCIES:
   - AgoraRtm_iOS
   - IQKeyboardManager
   - JSONKit
+  - SDWebImage
   - SGQRCode (~> 3.5.1)
   - TZImagePickerController
   - WSProgressHUD
@@ -41,6 +45,7 @@ SPEC REPOS:
     - AgoraRtm_iOS
     - IQKeyboardManager
     - JSONKit
+    - SDWebImage
     - SGQRCode
     - Shimmer
     - TZImagePickerController
@@ -52,11 +57,12 @@ SPEC CHECKSUMS:
   AgoraRtm_iOS: 382a54763803dad098d3b31a2608ccd62972e00b
   IQKeyboardManager: 2a6e97afdafc7becf0cb17a9a8d795e3a980717f
   JSONKit: 5b69e804ea54d99293eed0fd2ce596c5703fefb0
+  SDWebImage: 240e5c12b592fb1268c1d03b8c90d90e8c2ffe82
   SGQRCode: 65d6170ddcf3feecc6e2f3601aac78ad93e56589
   Shimmer: c5374be1c2b0c9e292fb05b339a513cf291cac86
   TZImagePickerController: edf61b8e87f26e3e445aa50eb66254bd7f4859db
   WSProgressHUD: 8214e549869776514e8055527c590a109c025e3e
 
-PODFILE CHECKSUM: 8c5d2d8218b60a8543e72d83fda966235c424024
+PODFILE CHECKSUM: 694d92fd543d0a2c5da702266d76b2fb28a7c641
 
 COCOAPODS: 1.11.2

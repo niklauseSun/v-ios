@@ -8,6 +8,7 @@ ${PODS_ROOT}/AgoraAudio_iOS/Agorafdkaac.framework
 ${PODS_ROOT}/AgoraRtm_iOS/AgoraRtmKit.framework
 ${BUILT_PRODUCTS_DIR}/IQKeyboardManager/IQKeyboardManager.framework
 ${BUILT_PRODUCTS_DIR}/JSONKit/JSONKit.framework
+${BUILT_PRODUCTS_DIR}/SDWebImage/SDWebImage.framework
 ${BUILT_PRODUCTS_DIR}/SGQRCode/SGQRCode.framework
 ${BUILT_PRODUCTS_DIR}/Shimmer/Shimmer.framework
 ${BUILT_PRODUCTS_DIR}/TZImagePickerController/TZImagePickerController.framework
