@@ -81,6 +81,7 @@ static NSString *KVOContext;
 @property NSString* bussinessAccid;
 
 @property NSString* modleUrl;
+@property NSString* modelId;
 
 @property NSString* customerHeadImage;
 @property NSString* customerIdentity;
@@ -140,7 +141,8 @@ static NSString *KVOContext;
     self.view.backgroundColor = [UIColor whiteColor];
     
     
-    
+    self.modleUrl = @"https://beyond.3dnest.biz/silversea_dev/takelook/?m=7051c064_o0fM_b6f9";
+    self.modelId = @"7051c064_o0fM_b6f9";
     // 创建WKWebView
     [self createWKWebView];
     
@@ -158,12 +160,12 @@ static NSString *KVOContext;
     [self.bridge registerFrameAPI];
     
     // 加载H5页面
-//    [self loadHTML];
     
-    self.appID = @""; // appId;
-    self.agoraAudioAppId = @"511767b5f6974accbae15e9022518589";
+    self.appID = @"3dc9b22d18a8405ea10efc0fcc2054d7"; // appId;
+    self.agoraAudioAppId = @"3dc9b22d18a8405ea10efc0fcc2054d7";
     self.agoraAudioToken = @"0063dc9b22d18a8405ea10efc0fcc2054d7IADnBF5ZR63DTgvhR0S+tKqlRJqJH9LmVbFp4Qf+T8x0pz37XygAAAAAEABgsZT+f7o+YQEAAQB+uj5h";
 
+    // rtm 初始化
     self.kit = [[AgoraRtmKit alloc] initWithAppId:self.appID delegate:self];
     
     [self requestBaseUrl];
@@ -230,28 +232,9 @@ static NSString *KVOContext;
     self.agoraKit = [AgoraRtcEngineKit sharedEngineWithAppId:self.agoraAudioAppId delegate:self];
 }
 
-- (void)joinVideoChannelId:(NSString *)channelId byUserId: (NSString *)userId {
-    NSInteger uid = [userId integerValue];
-    [self.agoraKit joinChannelByToken:self.agoraAudioToken channelId:channelId info:nil uid:uid joinSuccess:^(NSString * _Nonnull channel, NSUInteger uid, NSInteger elapsed) {
-        NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:3];
-        [dict setValue:@"joinChannelSuccess" forKey:@"type"];
-        [dict setValue:channelId forKey:@"channelName"];
-        [dict setValue:userId forKey:@"userId"];
-        
-        NSString *msg = [self dictToStr:dict];
-        [self onData:msg];
-    }];
-}
-
 - (void)leavelAudioChannel {
     [self.agoraKit leaveChannel:^(AgoraChannelStats * _Nonnull stat) {
-        NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:3];
-        [dict setValue:@"leavelChannel" forKey:@"type"];
-        [dict setValue:self.videoChannelName forKey:@"channelName"];
-        [dict setValue:self.uid forKey:@"userId"];
-        
-        NSString *msg = [self dictToStr:dict];
-        [self onData:msg];
+        NSLog(@"退出语音频道成功");
     }];
 }
 
@@ -267,29 +250,26 @@ static NSString *KVOContext;
 
 #pragma mark --- 声网云信令初始化
 
-
 - (void)loginWithUserId:(NSString *)userId andToken:(NSString *)token {
     self.uid = userId;
     self.token = token;
     
     [self.kit loginByToken:token user:userId completion:^(AgoraRtmLoginErrorCode errorCode) {
+        switch (errorCode) {
+            case AgoraRtmLoginErrorOk:
+                NSLog(@"Login rtm success");
+                // 用户成功登录！
+                [self updateUserStatus:self.uid withStatus:101];
+                break;
+            case AgoraRtmLoginErrorUnknown:
+                NSLog(@"Login Error Unknown");
+                break;
+            default:
+                break;
+        }
         if (errorCode != AgoraRtmLoginErrorOk){
             self.text = [NSString stringWithFormat:@"Login failed for user %@. Code: %ld",self.uid, (long)errorCode];
-                        NSLog(@"%@", self.text);
-            NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:4];
-            [dict setValue:@"initMessageActionFail" forKey:@"type"];
-            [dict setValue:self.uid forKey:@"userId"];
-            [dict setValue:[NSString stringWithFormat:@"%d", (int)errorCode] forKey:@"errorCode"];
-            
-            NSString *msg = [self dictToStr:dict];
-            [self onData:msg];
-        } else {
-            NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:4];
-            [dict setValue:@"initMessageActionSuccess" forKey:@"type"];
-            [dict setValue:self.uid forKey:@"userId"];
-            
-            NSString *msg = [self dictToStr:dict];
-            [self onData:msg];
+            NSLog(@"%@", self.text);
         }
     }];
 }
@@ -388,7 +368,9 @@ static NSString *KVOContext;
         if (data && [[data valueForKey:@"state"] isEqualToString:@"initdone"]) {
             NSLog(@"receive message --- initdone");
             
-            if (![self.peerID isEqual:@""] && ![self.peerID isEqualToString:peerId]) {
+            if ([self.peerID isEqual:@""] && ![self.peerID isEqualToString:peerId]) {
+                
+            } else {
                 if (![self.businessType isEqualToString:@"bussiness"]) {
                     [self onChatUpdate:@"3"];
                 }
@@ -398,7 +380,10 @@ static NSString *KVOContext;
             NSString *type = [receiveData valueForKey:@"type"];
             
             if ([type isEqualToString:@"mini-hangup"]) {
+                // 挂断
                 [self onChatUpdate:@"8"];
+                [self leavelAudioChannel];
+                [self updateUserStatus:self.bussinessUid withStatus:101];
             } else if ([type isEqualToString:@"app-hangup"]) {
                 if ([[receiveData valueForKey:@"hangupType"] isEqualToString:@"7"]) {
                     [self onChatUpdate:@"7"];
@@ -406,27 +391,88 @@ static NSString *KVOContext;
                     [self onChatUpdate:@"5"];
                 }
             } else if ([type isEqualToString:@"app-call"]) {
+                NSString *houseUrl = [receiveData valueForKey:@"houseurl"];
                 
+                NSDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:1];
+                [dict setValue:houseUrl forKey:@"houseurl"];
+                NSString *res = [self dictToStr: dict];
+                [self onData:res];
+                
+                NSString *bid = [data valueForKey:@"bussinessUid"];
+                
+                if (![[data valueForKey:@"bussinessUid"] isEqualToString:@""]) {
+                    self.bussinessHeadImage = [data valueForKey:@"bussinessUid"];
+                }
+                
+                if (![[data valueForKey:@"bussinessIdentity"] isEqualToString:@""]) {
+                    self.bussinessIdentity = [data valueForKey:@"bussinessIdentity"];
+                }
+                if (![[data valueForKey:@"bussinessNickName"] isEqualToString:@""]) {
+                    self.bussinessNickname = [data valueForKey:@"bussinessNickName"];
+                }
+                if (![[data valueForKey:@"bussinessUid"] isEqualToString:@""]) {
+                    self.bussinessUid = [data valueForKey:@"bussinessUid"];
+                }
+                if (![[data valueForKey:@"bussinessAccid"] isEqualToString:@"0"]) {
+                    self.bussinessAccid = [data valueForKey:@"bussinessAccid"];
+                }
+                if (![[data valueForKey:@"customerHeadImage"] isEqualToString:@""]) {
+                    self.customerHeadImage = [data valueForKey:@"customerHeadImage"];
+                }
+                if (![[data valueForKey:@"customerIdentity"] isEqualToString:@""]) {
+                    self.customerIdentity = [data valueForKey:@"customerIdentity"];
+                }
+                if (![[data valueForKey:@"customerUid"] isEqualToString:@"0"]) {
+                    self.customerUid = [data valueForKey:@"customerUid"];
+                }
+                if ([data valueForKey:@"customerNickName"]) {
+                    if (![[data valueForKey:@"customerNickName"] isEqualToString:@""]) {
+                        self.customerNickname = [data valueForKey:@"customerNickName"];
+                    }
+                    
+                }
+                self.bussinessUid = bid;
+                
+                [self updateCustomerAndBussinessId:message.text];
+            } else if ([type isEqualToString:@"accept"]) {
+                NSString *bid = [data valueForKey:@"bussinessUid"];
+                [self joinChannelWithId:self.uid andChanneName:bid];
+                [self updateCustomerAndBussinessId:message.text];
+                [self onChatUpdate:@"3"];
+            } else {
+                [self onData:message.text];
             }
-            
-//            if ([type isEqualToString:@"app-hangup"]) {
-//
-//                if ([receiveData valueForKey:@"hangupType"] && [[receiveData valueForKey:@"hangupType"] isEqualToString:@"7"]) {
-//                    [self onChatUpdate:@"7"];
-//                } else {
-//                    // android是这样做的照抄
-//                    [self onChatUpdate:@"3"];
-//                    [self onChatUpdate:@"5"];
-//                }
-//
-//            }
         }
         
         
-        [self onData:message.text];
+        
     }
     
     NSLog(@"%@", self.text);
+}
+
+- (void)updateCustomerAndBussinessId:(NSString *)message {
+    NSDictionary *receiveData = [self parseJSON:message];
+    
+    NSDictionary *data = [receiveData valueForKey:@"data"];
+    
+    if ([data valueForKey:@"customerUid"]) {
+        NSString *customerUid = [data valueForKey:@"customerUid"];
+        if ([self.businessType isEqualToString:@"bussiness"]) {
+            self.peerID = customerUid;
+        } else {
+            self.uid = customerUid;
+        }
+    }
+    
+    if ([data valueForKey:@"bussinessUid"]) {
+        NSString *bussinessUid = [data valueForKey:@"bussinessUid"];
+        if ([self.businessType isEqualToString:@"bussiness"]) {
+            self.uid = bussinessUid;
+        } else {
+            self.peerID = bussinessUid;
+        }
+    }
 }
 
 
@@ -453,6 +499,15 @@ static NSString *KVOContext;
     // 创建webView容器
     WKWebViewConfiguration *webConfig = [[WKWebViewConfiguration alloc] init];
     WKUserContentController *userContentVC = [[WKUserContentController alloc] init];
+    
+//    let preferences = WKPreferences()
+//    preferences.javaScriptEnabled = true
+//    let configuration = WKWebViewConfiguration()
+//    configuration.preferences = preferences
+    WKPreferences *preferences = [[WKPreferences alloc] init];
+    preferences.javaScriptEnabled = YES;
+    
+    webConfig.preferences = preferences;
     
     [self addScripts: userContentVC];
     
@@ -500,6 +555,8 @@ static NSString *KVOContext;
     [userConfig addScriptMessageHandler:self name:@"login"];
     [userConfig addScriptMessageHandler:self name:@"jumpToWebView"];
     [userConfig addScriptMessageHandler:self name:@"sendData"];
+    [userConfig addScriptMessageHandler:self name:@"logout"];
+    [userConfig addScriptMessageHandler:self name:@"isRealOnLine"];
 }
 
 /**
@@ -912,6 +969,7 @@ static NSString *KVOContext;
 #pragma mark - WKScriptMessageHandler
 
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
+    NSLog(@"web message", message.body);
     if ([message.name isEqualToString:@"sendVRCard"]) {
     //这个是传过来的参数
         NSLog(@"%@",message.body);
@@ -926,31 +984,7 @@ static NSString *KVOContext;
         NSLog(@"%@",message.body);
         
         if ([message.body isKindOfClass:[NSString class]]) {
-            NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] initWithCapacity:6];
-            
-            NSMutableDictionary *customer = [[NSMutableDictionary alloc] initWithCapacity:6];
-            [customer setValue:self.customerHeadImage forKey:@"customerHeadImage"];
-            [customer setValue:self.customerIdentity forKey:@"customerIdentity"];
-            [customer setValue:self.customerNickname forKey:@"customerNickName"];
-            [customer setValue:self.customerUid forKey:@"customerUid"];
-            [customer setValue:self.customerAccid forKey:@"customerAccid"];
-            
-            NSMutableDictionary *business = [[NSMutableDictionary alloc] initWithCapacity:6];
-            [business setValue:self.bussinessHeadImage forKey:@"bussinessHeadImage"];
-            [business setValue:self.bussinessIdentity forKey:@"bussinessIdentity"];
-            [business setValue:self.bussinessNickname forKey:@"bussinessNickname"];
-            [business setValue:self.bussinessUid forKey:@"bussinessUid"];
-            [business setValue:self.bussinessAccid forKey:@"bussinessAccid"];
-            
-            [userInfo setValue:customer forKey:@"customer"];
-            if ([self.businessType isEqualToString:@"bussiness"]) {
-                [userInfo setValue:self.bussinessIdentity forKey:@"currentIdentity"];
-            } else {
-                [userInfo setValue:self.customerIdentity forKey:@"currentIdentity"];
-            }
-            [userInfo setValue:business forKey:@"bussiness"];
-            
-            [self resUserInfo: [self dictToStr:userInfo]];
+            [self sendUserInfoToWeb];
         }
     }
     
@@ -962,7 +996,7 @@ static NSString *KVOContext;
         [callDict setValue:@"app-call" forKey: @"type"];
         [callDict setValue:self.uid forKey: @"roomid"];
         [callDict setValue:self.modleUrl forKey:@"houseurl"];
-        [callDict setValue:@"" forKey:@"houseid"];
+        [callDict setValue:self.modelId forKey:@"houseid"];
         [callDict setValue:self.uid forKey:@"channelName"];
         
         [callDict setValue:self.bussinessHeadImage forKey:@"bussinessHeadImage"];
@@ -981,46 +1015,15 @@ static NSString *KVOContext;
         NSString *msg = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
         
         [self sendPeerMessage:msg toPeerId:self.peerID];
-        
-//        if ([message.body isKindOfClass:[NSString class]]) {
-//            NSDictionary *resultData = [self parseJSON:message.body];
-//
-//            NSString *roomId = [resultData valueForKey:@"roomid"];
-//            NSString *houseId = [resultData valueForKey:@"houseid"];
-//            NSString *houseUrl = [resultData valueForKey:@"houseurl"];
-//            NSString *channelName = [resultData valueForKey:@"channelName"];
-//
-//            NSString *peerId = [resultData valueForKey:@"peerId"];
-//            self.peerID = peerId;
-//
-//            NSMutableDictionary *callDict = [[NSMutableDictionary alloc] initWithCapacity:6];
-//
-//            [callDict setValue:roomId forKey:@"roomid"];
-//            [callDict setValue:houseId forKey:@"houseid"];
-//            [callDict setValue:houseUrl forKey:@"houseurl"];
-//            if (!channelName) {
-//                [callDict setValue:self.videoChannelName forKey:@"channelName"];
-//            } else {
-//                [callDict setValue:channelName forKey:channelName];
-//            }
-//            [callDict setValue:@"app-call" forKey:@"type"];
-//
-//            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:callDict options:NSJSONWritingPrettyPrinted error:nil];
-//
-//            NSString *msg = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-//
-//            [self sendPeerMessage:msg toPeerId:peerId];
-//        }
-        
     }
     
     if ([message.name isEqualToString:@"hangup"]) {
         //这个是传过来的参数
         NSLog(@"hangup %@",message.body);
         
-        [self leaveChannel:@""];
+        [self leavelAudioChannel];
         
-        [self onChatUpdate: @"8"];
+        [self onChatUpdate: @"7"];
         
         NSMutableDictionary *hangUpDict = [[NSMutableDictionary alloc] initWithCapacity:3];
         [hangUpDict setValue:@"mini-hangup" forKey:@"type"];
@@ -1056,6 +1059,7 @@ static NSString *KVOContext;
         NSLog(@"accept --- %@",message.body);
         
         [self onChatUpdate:@"3"];
+        [self isAccept];
     }
     
     if ([message.name isEqualToString:@"getLog"]) {
@@ -1066,47 +1070,28 @@ static NSString *KVOContext;
     if ([message.name isEqualToString:@"mute"]) {
         //这个是传过来的参数
         NSLog(@"%@",message.body);
-        [self adjustAudioVolume:0];
+        [self.agoraKit muteLocalAudioStream:true];
     }
     
     if ([message.name isEqualToString:@"unmute"]) {
         //这个是传过来的参数
         NSLog(@"%@",message.body);
         
-        [self adjustAudioVolume:50];
+        [self.agoraKit muteLocalAudioStream:false];
     }
     
+    // 初始化
     if ([message.name isEqualToString:@"initMessageAction"]) {
         NSLog(@"initMessageAction === %@",message.body);
         if ([message.body isKindOfClass:[NSString class]]) {
             NSDictionary *resultDict = [self parseJSON: message.body];
             // userId 是必传的
             self.uid = [resultDict objectForKey:@"userId"];
-            if ([resultDict objectForKey:@"audioToken"]) {
-                self.agoraAudioToken = [resultDict objectForKey:@"audioToken"];
-            }
             if ([resultDict objectForKey:@"token"]) {
                 self.token = [resultDict objectForKey:@"token"];
             }
             [self initializeAgoraEngine];
-            [self logout];
-            // 登录云信令
-            [self loginWithUserId:self.uid andToken:self.token];
-        }
-    }
-    
-    if ([message.name isEqualToString:@"joinChannel"]) {
-        // 加入音频频道
-        if ([message.body isKindOfClass:[NSString class]]) {
-            NSDictionary *resultDict = [self parseJSON:message.body];
-            self.videoChannelName = [resultDict valueForKey:@"channelName"];
-            
-            if ([resultDict valueForKey:@"audioToken"]) {
-                self.agoraAudioToken = [resultDict valueForKey:@"audioToken"];
-                [self joinVideoChannelId:self.videoChannelName byUserId:self.uid];
-            } else {
-                [self requestToken];
-            }
+            [self getMessageToken:self.uid];
         }
     }
     
@@ -1133,6 +1118,44 @@ static NSString *KVOContext;
         [self sendPeerMessage:message.body toPeerId:self.peerID];
     }
     
+    if ([message.name isEqualToString:@"logout"]) {
+        [self.kit logoutWithCompletion:^(AgoraRtmLogoutErrorCode errorCode) {
+            switch (errorCode) {
+                case AgoraRtmLogoutErrorOk:
+                    [self updateUserStatus:self.uid withStatus:100];
+                    break;
+                    
+                default:
+                    break;
+            }
+        }];
+        
+        [self.agoraKit leaveChannel:^(AgoraChannelStats * _Nonnull stat) {
+                    
+        }];
+    }
+    
+    if ([message.name isEqualToString:@"isRealOnline"]) {
+        NSDictionary *resultDict = [self parseJSON:message.body];
+        
+        if ([resultDict valueForKey:@"bussinessUid"]) {
+            NSString *buid = [resultDict valueForKey:@"bussinessUid"];
+            
+            NSMutableArray *array = [NSMutableArray array];
+            [array addObject:buid];
+            
+            [self.kit queryPeersOnlineStatus:array completion:^(NSArray<AgoraRtmPeerOnlineStatus *> *peerOnlineStatus, AgoraRtmQueryPeersOnlineErrorCode errorCode) {
+                for (AgoraRtmPeerOnlineStatus *peer in peerOnlineStatus) {
+                    if (peer.isOnline) {
+                        [self isInChannel: buid];
+                    } else {
+                        [self updateUserStatus:peer.peerId withStatus:100];
+                    }
+                }
+            }];
+        }
+    }
+    
     if ([message.name isEqualToString:@"sendUserInfo"]) {
         if ([message.body isKindOfClass:[NSString class]]) {
             NSDictionary *resultDict = [self parseJSON: message.body];
@@ -1145,19 +1168,19 @@ static NSString *KVOContext;
             if ([resultDict valueForKey:@"bussiness"]) {
                 NSDictionary *buisiness = [resultDict valueForKey:@"bussiness"];
                 
-                if (![[buisiness valueForKey:@"bussinessHeadImage"] isEmpty]) {
+                if ([buisiness valueForKey:@"bussinessHeadImage"]) {
                     self.bussinessHeadImage = [buisiness valueForKey:@"bussinessHeadImage"];
                 }
-                if (![[buisiness valueForKey:@"bussinessIdentity"] isEmpty]) {
+                if ([buisiness valueForKey:@"bussinessIdentity"]) {
                     self.bussinessIdentity = [buisiness valueForKey:@"bussinessIdentity"];
                 }
-                if (![[buisiness valueForKey:@"bussinessNickname"] isEmpty]) {
-                    self.bussinessNickname = [buisiness valueForKey:@"bussinessNickname"];
+                if ([buisiness valueForKey:@"bussinessNickName"]) {
+                    self.bussinessNickname = [buisiness valueForKey:@"bussinessNickName"];
                 }
-                if (![[buisiness valueForKey:@"bussinessUid"] isEmpty]) {
+                if ([buisiness valueForKey:@"bussinessUid"]) {
                     self.bussinessUid = [buisiness valueForKey:@"bussinessUid"];
                 }
-                if (![[buisiness valueForKey:@"bussinessAccid"] isEmpty]) {
+                if ([buisiness valueForKey:@"bussinessAccid"]) {
                     self.bussinessAccid = [buisiness valueForKey:@"bussinessAccid"];
                 }
                 
@@ -1174,29 +1197,33 @@ static NSString *KVOContext;
             
             if ([resultDict valueForKey:@"modleUrl"]) {
                 self.modleUrl = [resultDict valueForKey:@"modleUrl"];
+                NSLog(@"url %@", self.modleUrl);
             }
             
             if ([resultDict valueForKey:@"customer"]) {
                 NSDictionary *customer = [resultDict valueForKey:@"customer"];
                 
-                if (![[customer valueForKey:@"customerHeadImage"] isEmpty]) {
-                    self.customerHeadImage = [customer valueForKey:@"customerHeadImage"];
+                if ([customer valueForKey:@"customerHeadImage"]) {
+                    
+                    NSString *customerHeadImage = [customer valueForKey:@"customerHeadImage"];
+                    if (![customerHeadImage isEqualToString:@""]) {
+                        self.customerHeadImage = [customer valueForKey:@"customerHeadImage"];
+                    }
+                    
                 }
                 
-                if (![[customer valueForKey:@"customerIdentity"] isEmpty]) {
+                if ([customer valueForKey:@"customerIdentity"]) {
                     self.customerIdentity = [customer valueForKey:@"customerIdentity"];
-                }
-                
-                if (![[customer valueForKey:@"customerNickname"] isEmpty]) {
-                    self.customerNickname = [customer valueForKey:@"customerNickName"];
                 }
                 
                 if (![[customer valueForKey:@"customerUid"] isEqual:@"0"]) {
                     self.customerUid = [customer valueForKey:@"customerUid"];
                 }
                 
-                if (![[customer valueForKey:@"customerAccid"] isEmpty]) {
-                    self.customerAccid = [customer valueForKey:@"customerAccid"];
+                if ([customer valueForKey:@"customerAccid"]) {
+                    if (![[customer valueForKey:@"customerAccid"] isEqualToString:@""]) {
+                        self.customerAccid = [customer valueForKey:@"customerAccid"];
+                    }
                 }
                 
                 if (![self.businessType isEqualToString:@"bussiness"]) {
@@ -1208,9 +1235,53 @@ static NSString *KVOContext;
                         self.peerID = self.customerUid;
                     }
                 }
+                if ([customer valueForKey:@"customerNickName"]) {
+                    if (![[customer valueForKey:@"customerNickName"] isEqualToString:@""]) {
+                        self.customerNickname = [customer valueForKey:@"customerNickName"];
+                    }
+                    
+                }
             }
         }
     }
+}
+
+-(void)sendUserInfoToWeb {
+    NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] initWithCapacity:6];
+    
+    NSMutableDictionary *customer = [[NSMutableDictionary alloc] initWithCapacity:6];
+    [customer setValue:self.customerHeadImage forKey:@"customerHeadImage"];
+    [customer setValue:self.customerIdentity forKey:@"customerIdentity"];
+    [customer setValue:self.customerNickname forKey:@"customerNickName"];
+    [customer setValue:self.customerUid forKey:@"customerUid"];
+    [customer setValue:self.customerAccid forKey:@"customerAccid"];
+    
+    NSMutableDictionary *business = [[NSMutableDictionary alloc] initWithCapacity:6];
+    [business setValue:self.bussinessHeadImage forKey:@"bussinessHeadImage"];
+    [business setValue:self.bussinessIdentity forKey:@"bussinessIdentity"];
+    [business setValue:self.bussinessNickname forKey:@"bussinessNickName"];
+    [business setValue:self.bussinessUid forKey:@"bussinessUid"];
+    [business setValue:self.bussinessAccid forKey:@"bussinessAccid"];
+    
+    [userInfo setValue:customer forKey:@"customer"];
+    if ([self.businessType isEqualToString:@"bussiness"]) {
+        [userInfo setValue:self.bussinessIdentity forKey:@"currentIdentity"];
+    } else {
+        [userInfo setValue:self.customerIdentity forKey:@"currentIdentity"];
+    }
+    [userInfo setValue:business forKey:@"bussiness"];
+    
+    [self resUserInfo: [self dictToStr:userInfo]];
+}
+
+- (void)isAccept {
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:3];
+    
+    [dict setValue:@"accept" forKey:@"type"];
+    [dict setValue:self.bussinessUid forKey:@"bussinessUid"];
+    [dict setValue:self.customerUid forKey:@"customerUid"];
+    NSString *acceptMsg = [self dictToStr:dict];
+    [self sendPeerMessage:acceptMsg toPeerId:self.peerID];
 }
 
 #pragma mark --- MFMessageComposeViewControllerDelegate
@@ -1244,9 +1315,9 @@ static NSString *KVOContext;
 }
 
 - (void)onData:(NSString *)str {
-    
-    NSString *script = [NSString stringWithFormat:@"onData('%@')", str];
-    
+    NSString *string = [self noWhiteSpaceString:str];
+    NSString *script = [NSString stringWithFormat:@"onData('%@')", string];
+    NSLog(@"onData %@", script);
     [self.wv evaluateJavaScript:script completionHandler:^(id _Nullable x, NSError * _Nullable error) {
         
     }];
@@ -1261,11 +1332,28 @@ static NSString *KVOContext;
 }
 
 - (void)resUserInfo:(NSString *)str {
-    NSString *script = [NSString stringWithFormat:@"getUserInfo('%@')", str];
+    NSString *string = [self noWhiteSpaceString:str];
+//    NSString *script = [NSString stringWithFormat:@"getUserInfo('%@')", string];
     
+    NSString *script = [NSString stringWithFormat:@"onReceiveUserInfo('%@')", string];
     [self.wv evaluateJavaScript:script completionHandler:^(id _Nullable x, NSError * _Nullable error) {
         
     }];
+    
+//    [self.wv evaluateJavaScript:script completionHandler:^(id _Nullable x, NSError * _Nullable error) {
+//        NSLog(@"error %@", error);
+//    }];
+}
+
+- (NSString *)noWhiteSpaceString:(NSString *)str {
+    NSString *newString = str;
+  //去除掉首尾的空白字符和换行字符
+    newString = [newString stringByReplacingOccurrencesOfString:@"\r" withString:@""];
+    newString = [newString stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+    newString = [newString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];  //去除掉首尾的空白字符和换行字符使用
+    newString = [newString stringByReplacingOccurrencesOfString:@" " withString:@""];
+//    可以去掉空格，注意此时生成的strUrl是autorelease属性的，所以不必对strUrl进行release操作！
+    return newString;
 }
 
 - (NSString *)dictToStr: (NSDictionary *)dict {
@@ -1275,10 +1363,11 @@ static NSString *KVOContext;
 }
 
 - (void)joinChannelWithId: (NSString *)fromId andChanneName:(NSString *)channelName {
+    NSString *chName = [NSString stringWithFormat:@"channel%@", channelName];
     NSString *urlString = @"https://gallery.creativ-space.com/apis/vragora/token";
     
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:2];
-    [dict setValue:channelName forKey:@"channelName"];
+    [dict setValue:chName forKey:@"channelName"];
     [dict setValue:fromId forKey:@"uid"];
     [dict setValue:@(1) forKey:@"role"];
     
@@ -1292,10 +1381,21 @@ static NSString *KVOContext;
             
             NSString *data = [dict valueForKey:@"data"];
             // TODO 加入频道的代码
+            [self joinChannelWithUid:fromId channelName:chName token:data];
+            
         }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         
     }];
+}
+
+- (void)joinChannelWithUid: (NSString *)userId channelName:(NSString *)channelName token:(NSString *)token {
+    NSInteger uIdIn = [userId integerValue];
+    [self updateUserStatus:userId withStatus:102];
+    [self.agoraKit joinChannelByToken:token channelId:channelName info:@"" uid:uIdIn joinSuccess:^(NSString * _Nonnull channel, NSUInteger uid, NSInteger elapsed) {
+        NSLog(@"%@ join === %@ === Success", userId, channel);
+    }];
+
 }
 
 - (void)requestToken {
@@ -1317,7 +1417,82 @@ static NSString *KVOContext;
             
             self.agoraAudioToken = data;
             
-            [self joinVideoChannelId:self.videoChannelName byUserId:self.uid];
+//            [self joinChannelWithUid:self.uid channelName:s token:data];
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        
+    }];
+}
+
+- (void)getMessageToken: (NSString *)userId {
+    NSString *urlString = @"https://console.mspaco.com.sg/prod-api/mall-daogou/vragora/rtm-token";
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:2];
+    [dict setValue:self.uid forKey:@"userId"];
+    
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+
+    
+    [manager POST:urlString parameters:dict headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSDictionary *dict = [NSDictionary dictionaryWithDictionary:responseObject];
+        
+        NSString *code = [NSString stringWithFormat:@"%@", dict[@"code"]];
+        if ([code isEqual: @"200"]) {
+            
+            NSString *data = [dict valueForKey:@"data"];
+            
+            // rtm token
+            self.token = data;
+            
+            [self loginWithUserId:userId andToken:self.token];
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"get token error");
+    }];
+}
+
+- (void)updateUserStatus: (NSString *)userId withStatus:(int)status {
+    NSLog(@"update user %@ login status %d",userId, status);
+    NSString *urlString = @"https://console.mspaco.com.sg/prod-api/mall-daogou/customer_status/status";
+    
+    NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:2];
+    [dict setValue:userId forKey:@"uid"];
+    [dict setValue:@(status) forKey:@"status"];
+
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+    [manager POST:urlString parameters:dict headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSDictionary *dict = [NSDictionary dictionaryWithDictionary:responseObject];
+        
+        NSString *code = [NSString stringWithFormat:@"%@", dict[@"code"]];
+        if ([code isEqual: @"200"]) {
+            NSLog(@"user %@ login success", userId);
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"test");
+    }];
+}
+
+- (void)isInChannel:(NSString *)bUid {
+    NSString *urlString = [NSString stringWithFormat:@"https://api.agora.io/dev/v1/channel/user/property/%@/%@/channel%@", self.agoraAudioAppId, bUid, bUid];
+    NSDictionary *dict = [NSDictionary dictionary];
+    
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+    [manager GET:urlString parameters:dict headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSDictionary *dict = [NSDictionary dictionaryWithDictionary:responseObject];
+        
+        NSString *code = [NSString stringWithFormat:@"%@", dict[@"code"]];
+        
+        if ([code isEqual: @"200"]) {
+            NSDictionary *dataBoj = dict[@"data"];
+            Boolean inChannel = [[dataBoj valueForKey:@"in_channel"] boolValue];
+            
+            if (inChannel) {
+                [self updateUserStatus:bUid withStatus:102];
+            } else {
+                [self updateUserStatus:bUid withStatus:101];
+            }
         }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         
@@ -1330,7 +1505,7 @@ static NSString *KVOContext;
     NSDictionary *dict = [NSDictionary dictionary];
     
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
-    
+    manager.requestSerializer = [AFJSONRequestSerializer serializer];
     [manager GET:urlString parameters:dict headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *dict = [NSDictionary dictionaryWithDictionary:responseObject];
         
