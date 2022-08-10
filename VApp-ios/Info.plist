@@ -2,6 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>For VR Talk feature to talk with customer service staff
+For VR Talk feature to talk with customer service staff</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -23,13 +26,13 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>请求相机权限以进行二维码扫描登录扫描</string>
+	<string>To scan local QR code and login</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>使用时获取地址信息以更新配送地址</string>
+	<string>Requesting GPS permission to update delivery address. </string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>使用时获取地址信息以配置配送地址</string>
+	<string>Requesting GPS permission to set delivery address. </string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>请求相册权限以对本地二维码进行扫描进行登录</string>
+	<string>To scan local QR code and login</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

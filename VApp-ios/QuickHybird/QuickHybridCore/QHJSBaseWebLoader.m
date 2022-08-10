@@ -327,7 +327,6 @@ static NSString *KVOContext;
 - (void)sendPeerMessage:(NSString *)message toPeerId:(NSString *)peerId {
     AgoraRtmMessage *rtmMessage = [[AgoraRtmMessage alloc] initWithText:message];
     self.peerMsg = message;
-    self.peerID = peerId;
     [self.kit sendMessage:rtmMessage toPeer:peerId completion:^(AgoraRtmSendPeerMessageErrorCode errorCode) {
         if (errorCode == AgoraRtmSendPeerMessageErrorOk) {
             self.text = [NSString stringWithFormat:@"Message sent from user: %@ to user: %@ content: %@", self.uid, self.peerID, self.peerMsg];
@@ -394,48 +393,48 @@ static NSString *KVOContext;
                 NSString *houseUrl = [receiveData valueForKey:@"houseurl"];
                 
                 NSDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:1];
-                [dict setValue:houseUrl forKey:@"houseurl"];
+                [dict setValue:houseUrl forKey:@"URL"];
                 NSString *res = [self dictToStr: dict];
                 [self onData:res];
                 
-                NSString *bid = [data valueForKey:@"bussinessUid"];
+//                NSString *bid = [data valueForKey:@"bussinessUid"];
                 
-                if (![[data valueForKey:@"bussinessUid"] isEqualToString:@""]) {
-                    self.bussinessHeadImage = [data valueForKey:@"bussinessUid"];
+                if ([receiveData valueForKey:@"bussinessHeadImage"]) {
+                    self.bussinessHeadImage = [receiveData valueForKey:@"bussinessHeadImage"];
                 }
                 
-                if (![[data valueForKey:@"bussinessIdentity"] isEqualToString:@""]) {
-                    self.bussinessIdentity = [data valueForKey:@"bussinessIdentity"];
+                if (![[receiveData valueForKey:@"bussinessIdentity"] isEqualToString:@""]) {
+                    self.bussinessIdentity = [receiveData valueForKey:@"bussinessIdentity"];
                 }
-                if (![[data valueForKey:@"bussinessNickName"] isEqualToString:@""]) {
-                    self.bussinessNickname = [data valueForKey:@"bussinessNickName"];
+                if ([receiveData valueForKey:@"bussinessNickName"]) {
+                    self.bussinessNickname = [receiveData valueForKey:@"bussinessNickName"];
                 }
-                if (![[data valueForKey:@"bussinessUid"] isEqualToString:@""]) {
-                    self.bussinessUid = [data valueForKey:@"bussinessUid"];
+                if ([receiveData valueForKey:@"bussinessUid"]) {
+                    self.bussinessUid = [receiveData valueForKey:@"bussinessUid"];
                 }
-                if (![[data valueForKey:@"bussinessAccid"] isEqualToString:@"0"]) {
-                    self.bussinessAccid = [data valueForKey:@"bussinessAccid"];
+                if (![[receiveData valueForKey:@"bussinessAccid"] isEqualToString:@"0"]) {
+                    self.bussinessAccid = [receiveData valueForKey:@"bussinessAccid"];
                 }
-                if (![[data valueForKey:@"customerHeadImage"] isEqualToString:@""]) {
-                    self.customerHeadImage = [data valueForKey:@"customerHeadImage"];
+                if ([receiveData valueForKey:@"customerHeadImage"]) {
+                    self.customerHeadImage = [receiveData valueForKey:@"customerHeadImage"];
                 }
-                if (![[data valueForKey:@"customerIdentity"] isEqualToString:@""]) {
-                    self.customerIdentity = [data valueForKey:@"customerIdentity"];
+                if ([receiveData valueForKey:@"customerIdentity"]) {
+                    self.customerIdentity = [receiveData valueForKey:@"customerIdentity"];
                 }
-                if (![[data valueForKey:@"customerUid"] isEqualToString:@"0"]) {
-                    self.customerUid = [data valueForKey:@"customerUid"];
+                if (![[receiveData valueForKey:@"customerUid"] isEqualToString:@"0"]) {
+                    self.customerUid = [receiveData valueForKey:@"customerUid"];
                 }
-                if ([data valueForKey:@"customerNickName"]) {
-                    if (![[data valueForKey:@"customerNickName"] isEqualToString:@""]) {
-                        self.customerNickname = [data valueForKey:@"customerNickName"];
+                if ([receiveData valueForKey:@"customerNickName"]) {
+                    if (![[receiveData valueForKey:@"customerNickName"] isEqualToString:@""]) {
+                        self.customerNickname = [receiveData valueForKey:@"customerNickName"];
                     }
                     
                 }
-                self.bussinessUid = bid;
+//                self.bussinessUid = bid;
                 
                 [self updateCustomerAndBussinessId:message.text];
             } else if ([type isEqualToString:@"accept"]) {
-                NSString *bid = [data valueForKey:@"bussinessUid"];
+                NSString *bid = [receiveData valueForKey:@"bussinessUid"];
                 [self joinChannelWithId:self.uid andChanneName:bid];
                 [self updateCustomerAndBussinessId:message.text];
                 [self onChatUpdate:@"3"];
@@ -452,9 +451,9 @@ static NSString *KVOContext;
 }
 
 - (void)updateCustomerAndBussinessId:(NSString *)message {
-    NSDictionary *receiveData = [self parseJSON:message];
+    NSDictionary *data = [self parseJSON:message];
     
-    NSDictionary *data = [receiveData valueForKey:@"data"];
+
     
     if ([data valueForKey:@"customerUid"]) {
         NSString *customerUid = [data valueForKey:@"customerUid"];
@@ -1001,7 +1000,7 @@ static NSString *KVOContext;
         
         [callDict setValue:self.bussinessHeadImage forKey:@"bussinessHeadImage"];
         [callDict setValue:self.bussinessIdentity forKey:@"bussinessIdentity"];
-        [callDict setValue:self.bussinessNickname forKey:@"bussinessNickname"];
+        [callDict setValue:self.bussinessNickname forKey:@"bussinessNickName"];
         [callDict setValue:self.bussinessUid forKey:@"bussinessUid"];
         [callDict setValue:self.bussinessAccid forKey:@"bussinessAccid"];
         
@@ -1013,6 +1012,8 @@ static NSString *KVOContext;
     
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:callDict options:NSJSONWritingPrettyPrinted error:nil];
         NSString *msg = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        
+        NSLog(@"call %@", msg);
         
         [self sendPeerMessage:msg toPeerId:self.peerID];
     }
@@ -1057,7 +1058,7 @@ static NSString *KVOContext;
     if ([message.name isEqualToString:@"accept"]) {
         // 接受消息
         NSLog(@"accept --- %@",message.body);
-        
+        [self joinChannelWithId:self.uid andChanneName:self.bussinessUid];
         [self onChatUpdate:@"3"];
         [self isAccept];
     }
@@ -1159,6 +1160,7 @@ static NSString *KVOContext;
     if ([message.name isEqualToString:@"sendUserInfo"]) {
         if ([message.body isKindOfClass:[NSString class]]) {
             NSDictionary *resultDict = [self parseJSON: message.body];
+            NSLog(@"sendUserInfo %@", resultDict);
             
             if ([resultDict valueForKey:@"type"]) {
                 self.businessType = [resultDict valueForKey:@"type"];
@@ -1195,8 +1197,8 @@ static NSString *KVOContext;
                 }
             }
             
-            if ([resultDict valueForKey:@"modleUrl"]) {
-                self.modleUrl = [resultDict valueForKey:@"modleUrl"];
+            if ([resultDict valueForKey:@"modelUrl"]) {
+                self.modleUrl = [resultDict valueForKey:@"modelUrl"];
                 NSLog(@"url %@", self.modleUrl);
             }
             
@@ -1216,7 +1218,7 @@ static NSString *KVOContext;
                     self.customerIdentity = [customer valueForKey:@"customerIdentity"];
                 }
                 
-                if (![[customer valueForKey:@"customerUid"] isEqual:@"0"]) {
+                if (![[customer valueForKey:@"customerUid"] isEqualToString:@"0"]) {
                     self.customerUid = [customer valueForKey:@"customerUid"];
                 }
                 
@@ -1270,6 +1272,13 @@ static NSString *KVOContext;
         [userInfo setValue:self.customerIdentity forKey:@"currentIdentity"];
     }
     [userInfo setValue:business forKey:@"bussiness"];
+    NSTimeInterval interval = [[NSDate date] timeIntervalSince1970];
+    NSInteger time = interval;
+    
+    NSString *timeStr = [NSString stringWithFormat:@"%d", (int)time];
+
+    
+    [userInfo setValue:timeStr forKey:@"timeStr"];
     
     [self resUserInfo: [self dictToStr:userInfo]];
 }
@@ -1333,16 +1342,16 @@ static NSString *KVOContext;
 
 - (void)resUserInfo:(NSString *)str {
     NSString *string = [self noWhiteSpaceString:str];
-//    NSString *script = [NSString stringWithFormat:@"getUserInfo('%@')", string];
     
     NSString *script = [NSString stringWithFormat:@"onReceiveUserInfo('%@')", string];
     [self.wv evaluateJavaScript:script completionHandler:^(id _Nullable x, NSError * _Nullable error) {
+        if (error) {
+            NSLog(@"onReceiveUserInfo error %@", error);
+        } else {
+            NSLog(@"send onReceiveUserInfo success %@", script);
+        }
         
     }];
-    
-//    [self.wv evaluateJavaScript:script completionHandler:^(id _Nullable x, NSError * _Nullable error) {
-//        NSLog(@"error %@", error);
-//    }];
 }
 
 - (NSString *)noWhiteSpaceString:(NSString *)str {
@@ -1373,6 +1382,7 @@ static NSString *KVOContext;
     
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
     
+    manager.requestSerializer = [AFJSONRequestSerializer serializer];
     [manager POST:urlString parameters:dict headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *dict = [NSDictionary dictionaryWithDictionary:responseObject];
         
